@@ -1,0 +1,72 @@
+[
+  {
+    "file": "assets/congreso-valparaiso.jpg",
+    "media": "image",
+    "ref": "openverse:929c8fc9-cd14-4a38-8a59-92150fd5a224",
+    "title": "Edificio del Congreso Nacional, Valparaíso 20230903 01",
+    "creator": "Carlos Figueroa Rojas",
+    "creatorUrl": "https://commons.wikimedia.org/wiki/User:Carlos_yo",
+    "date": null,
+    "license": "CC BY-SA 4.0",
+    "licenseCode": "by-sa",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "creditRequired": true,
+    "page": "https://commons.wikimedia.org/w/index.php?curid=137606610",
+    "via": "Wikimedia Commons",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Edificio_del_Congreso_Nacional%2C_Valpara%C3%ADso_20230903_01.jpg/1920px-Edificio_del_Congreso_Nacional%2C_Valpara%C3%ADso_20230903_01.jpg",
+    "width": 1920,
+    "height": 1280,
+    "bytes": 836737,
+    "credit": "\"Edificio del Congreso Nacional, Valparaíso 20230903 01\" by Carlos Figueroa Rojas, CC BY-SA 4.0, via Wikimedia Commons",
+    "notes": [
+      "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
+    ],
+    "saved": "2026-11-16T18:54:59.961Z"
+  },
+  {
+    "file": "assets/senado-sala.jpg",
+    "media": "image",
+    "ref": "openverse:d45fad85-ea04-4141-953f-6655f91ddafb",
+    "title": "Camara-senadores-chile",
+    "creator": "Loco085",
+    "creatorUrl": "https://commons.wikimedia.org/wiki/User:Loco085",
+    "date": null,
+    "license": "CC BY-SA 3.0",
+    "licenseCode": "by-sa",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "creditRequired": true,
+    "page": "https://commons.wikimedia.org/w/index.php?curid=4246404",
+    "via": "Wikimedia Commons",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/Camara-senadores-chile.JPG/1920px-Camara-senadores-chile.JPG",
+    "width": 1920,
+    "height": 1440,
+    "bytes": 583754,
+    "credit": "\"Camara-senadores-chile\" by Loco085, CC BY-SA 3.0, via Wikimedia Commons",
+    "notes": [
+      "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
+    ],
+    "saved": "2026-11-16T18:55:01.538Z"
+  },
+  {
+    "file": "assets/santiago-noche.jpg",
+    "media": "image",
+    "ref": "commons:156027316",
+    "title": "Santiago night skyline",
+    "creator": "Javier Vieras",
+    "creatorUrl": null,
+    "date": "Taken on 9 January 2011",
+    "license": "CC BY 2.0",
+    "licenseCode": "by",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "creditRequired": true,
+    "page": "https://commons.wikimedia.org/wiki/File:Santiago_night_skyline.jpg",
+    "via": "Wikimedia Commons",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Santiago_night_skyline.jpg/1920px-Santiago_night_skyline.jpg",
+    "width": 1920,
+    "height": 1222,
+    "bytes": 558872,
+    "credit": "\"Santiago night skyline\" by Javier Vieras, CC BY 2.0, via Wikimedia Commons",
+    "notes": [],
+    "saved": "2026-11-16T18:55:02.606Z"
+  }
+]
