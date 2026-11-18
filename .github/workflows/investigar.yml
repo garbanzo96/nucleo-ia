@@ -1,0 +1,48 @@
+name: Investigación de la sala
+on:
+  schedule:
+    - cron: '0 10 * * *'
+    - cron: '0 11 * * 1,4'
+  repository_dispatch:
+    types: [investigar]
+  workflow_dispatch:
+    inputs:
+      tipo:
+        description: Radar a ejecutar
+        type: choice
+        options: [noticias, academico, ambos]
+        required: true
+        default: ambos
+permissions:
+  contents: read
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      EVENTO: ${{ github.event_name }}
+      TIPO_DISPATCH: ${{ github.event.client_payload.tipo }}
+      TRABAJO_ID: ${{ github.event.client_payload.trabajo_id }}
+      TIPO_MANUAL: ${{ inputs.tipo }}
+      HORARIO: ${{ github.event.schedule }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Investigar y actualizar estado
+        shell: bash
+        run: |
+          if [[ "$EVENTO" == "repository_dispatch" ]]; then
+            python agentes/ejecutar.py --tipo "$TIPO_DISPATCH" --trabajo-id "$TRABAJO_ID"
+          elif [[ "$EVENTO" == "workflow_dispatch" ]]; then
+            python agentes/ejecutar.py --tipo "$TIPO_MANUAL"
+          elif [[ "$HORARIO" == '0 11 * * 1,4' ]]; then
+            python agentes/ejecutar.py --tipo academico
+          else
+            python agentes/ejecutar.py --tipo noticias
+          fi

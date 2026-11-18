@@ -1,0 +1,6 @@
+export function validarFondo(raw){
+  const path=raw.imagen_privada??null, encuadre=raw.encuadre??50, oscurecimiento=raw.oscurecimiento??20;
+  if(path!==null&&(typeof path!=='string'||!/^fondos\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:jpg|png|webp)$/i.test(path)))throw Error('Imagen privada inválida');
+  if(!Number.isInteger(encuadre)||encuadre<0||encuadre>100||!Number.isInteger(oscurecimiento)||oscurecimiento<0||oscurecimiento>85)throw Error('Ajustes de imagen inválidos');
+  return {imagen_privada:path,encuadre,oscurecimiento};
+}

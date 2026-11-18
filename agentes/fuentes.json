@@ -1,0 +1,1258 @@
+[
+  {
+    "id": "techcrunch-ai",
+    "nombre": "TechCrunch AI",
+    "url": "https://techcrunch.com/category/artificial-intelligence/",
+    "feed": "https://techcrunch.com/category/artificial-intelligence/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "the-verge-ai",
+    "nombre": "The Verge AI",
+    "url": "https://www.theverge.com/ai-artificial-intelligence",
+    "feed": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "ars-technica-ai",
+    "nombre": "Ars Technica AI",
+    "url": "https://arstechnica.com/ai/",
+    "feed": "https://arstechnica.com/ai/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "mit-technology-review-ai",
+    "nombre": "MIT Technology Review (IA) y newsletter The Algorithm",
+    "url": "https://www.technologyreview.com/topic/artificial-intelligence/",
+    "feed": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "wired-ai",
+    "nombre": "Wired AI",
+    "url": "https://www.wired.com/tag/artificial-intelligence/",
+    "feed": "https://www.wired.com/feed/tag/ai/latest/rss",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "rest-of-world",
+    "nombre": "Rest of World",
+    "url": "https://restofworld.org/region/latin-america/",
+    "feed": "https://restofworld.org/feed/latest",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "404-media",
+    "nombre": "404 Media",
+    "url": "https://www.404media.co/",
+    "feed": "https://www.404media.co/rss/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "ieee-spectrum-ai",
+    "nombre": "IEEE Spectrum AI",
+    "url": "https://spectrum.ieee.org/topic/artificial-intelligence/",
+    "feed": "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "quanta-cs",
+    "nombre": "Quanta Magazine (computación)",
+    "url": "https://www.quantamagazine.org/computer-science/",
+    "feed": "https://www.quantamagazine.org/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "the-decoder",
+    "nombre": "The Decoder",
+    "url": "https://the-decoder.com/",
+    "feed": "https://the-decoder.com/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "reuters-ai",
+    "nombre": "Reuters Technology (IA)",
+    "url": "https://www.reuters.com/technology/artificial-intelligence/",
+    "tipo": "agencia",
+    "rol": "secundaria"
+  },
+  {
+    "id": "the-information",
+    "nombre": "The Information",
+    "url": "https://www.theinformation.com/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "techmeme",
+    "nombre": "Techmeme",
+    "url": "https://techmeme.com/",
+    "feed": "https://www.techmeme.com/feed.xml",
+    "tipo": "agregador",
+    "rol": "curaduria"
+  },
+  {
+    "id": "venturebeat-ai",
+    "nombre": "VentureBeat AI",
+    "url": "https://venturebeat.com/category/ai/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "tldr-ai",
+    "nombre": "TLDR AI",
+    "url": "https://tldr.tech/ai",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "the-rundown-ai",
+    "nombre": "The Rundown AI",
+    "url": "https://www.therundown.ai/",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "superhuman-ai",
+    "nombre": "Superhuman AI",
+    "url": "https://www.superhuman.ai/",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "the-neuron",
+    "nombre": "The Neuron",
+    "url": "https://www.theneurondaily.com/",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "the-batch",
+    "nombre": "The Batch (DeepLearning.AI)",
+    "url": "https://www.deeplearning.ai/the-batch/",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "import-ai",
+    "nombre": "Import AI (Jack Clark)",
+    "url": "https://importai.substack.com/",
+    "feed": "https://importai.substack.com/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "interconnects",
+    "nombre": "Interconnects (Nathan Lambert)",
+    "url": "https://www.interconnects.ai/",
+    "feed": "https://www.interconnects.ai/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "latent-space",
+    "nombre": "Latent Space",
+    "url": "https://www.latent.space/",
+    "feed": "https://www.latent.space/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "ahead-of-ai",
+    "nombre": "Ahead of AI (Sebastian Raschka)",
+    "url": "https://magazine.sebastianraschka.com/",
+    "feed": "https://magazine.sebastianraschka.com/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "simon-willison",
+    "nombre": "Simon Willison's Weblog",
+    "url": "https://simonwillison.net/",
+    "feed": "https://simonwillison.net/atom/everything/",
+    "tipo": "blog",
+    "rol": "curaduria"
+  },
+  {
+    "id": "one-useful-thing",
+    "nombre": "One Useful Thing (Ethan Mollick)",
+    "url": "https://www.oneusefulthing.org/",
+    "feed": "https://www.oneusefulthing.org/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "normal-tech",
+    "nombre": "AI as Normal Technology (Narayanan y Kapoor)",
+    "url": "https://www.normaltech.ai/",
+    "feed": "https://www.normaltech.ai/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "understanding-ai",
+    "nombre": "Understanding AI (Timothy B. Lee)",
+    "url": "https://www.understandingai.org/",
+    "feed": "https://www.understandingai.org/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "marcus-on-ai",
+    "nombre": "Marcus on AI (Gary Marcus)",
+    "url": "https://garymarcus.substack.com/",
+    "feed": "https://garymarcus.substack.com/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "dont-worry-vase",
+    "nombre": "Don't Worry About the Vase (Zvi Mowshowitz)",
+    "url": "https://thezvi.substack.com/",
+    "feed": "https://thezvi.substack.com/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "last-week-in-ai",
+    "nombre": "Last Week in AI",
+    "url": "https://lastweekin.ai/",
+    "feed": "https://lastweekin.ai/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "chinai",
+    "nombre": "ChinAI (Jeffrey Ding)",
+    "url": "https://chinai.substack.com/",
+    "feed": "https://chinai.substack.com/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "exponential-view",
+    "nombre": "Exponential View (Azeem Azhar)",
+    "url": "https://www.exponentialview.co/",
+    "feed": "https://www.exponentialview.co/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "platformer",
+    "nombre": "Platformer (Casey Newton)",
+    "url": "https://www.platformer.news/",
+    "feed": "https://www.platformer.news/rss/",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "openai-news",
+    "nombre": "OpenAI News",
+    "url": "https://openai.com/news/",
+    "feed": "https://openai.com/news/rss.xml",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "anthropic-news",
+    "nombre": "Anthropic News y Research",
+    "url": "https://www.anthropic.com/news",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "google-deepmind",
+    "nombre": "Google DeepMind Blog",
+    "url": "https://deepmind.google/discover/blog/",
+    "feed": "https://deepmind.google/blog/rss.xml",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "google-research",
+    "nombre": "Google Research Blog",
+    "url": "https://research.google/blog/",
+    "feed": "https://research.google/blog/rss/",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "meta-ai",
+    "nombre": "Meta AI Blog",
+    "url": "https://ai.meta.com/blog/",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "microsoft-research",
+    "nombre": "Microsoft Research Blog",
+    "url": "https://www.microsoft.com/en-us/research/blog/",
+    "feed": "https://www.microsoft.com/en-us/research/feed/",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "hugging-face-blog",
+    "nombre": "Hugging Face Blog",
+    "url": "https://huggingface.co/blog",
+    "feed": "https://huggingface.co/blog/feed.xml",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "mistral-news",
+    "nombre": "Mistral AI News",
+    "url": "https://mistral.ai/news",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "qwen-hf",
+    "nombre": "Qwen (Alibaba) en Hugging Face",
+    "url": "https://huggingface.co/Qwen",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "deepseek-hf",
+    "nombre": "DeepSeek en Hugging Face",
+    "url": "https://huggingface.co/deepseek-ai",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "ai2-blog",
+    "nombre": "Ai2 Blog",
+    "url": "https://allenai.org/blog",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "nvidia-blog",
+    "nombre": "NVIDIA Blog",
+    "url": "https://blogs.nvidia.com/",
+    "feed": "https://blogs.nvidia.com/feed/",
+    "tipo": "empresa",
+    "rol": "primaria"
+  },
+  {
+    "id": "apple-ml",
+    "nombre": "Apple Machine Learning Research",
+    "url": "https://machinelearning.apple.com/",
+    "feed": "https://machinelearning.apple.com/rss.xml",
+    "tipo": "empresa",
+    "rol": "primaria"
+  },
+  {
+    "id": "xai-news",
+    "nombre": "xAI News",
+    "url": "https://x.ai/news",
+    "tipo": "laboratorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "openai-cookbook",
+    "nombre": "OpenAI Cookbook",
+    "url": "https://cookbook.openai.com/",
+    "tipo": "documentacion",
+    "rol": "primaria"
+  },
+  {
+    "id": "anthropic-docs",
+    "nombre": "Documentación de Anthropic",
+    "url": "https://docs.claude.com/",
+    "tipo": "documentacion",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-ai",
+    "nombre": "arXiv cs.AI",
+    "url": "https://arxiv.org/list/cs.AI/recent",
+    "feed": "https://rss.arxiv.org/rss/cs.AI",
+    "tipo": "repositorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-cl",
+    "nombre": "arXiv cs.CL",
+    "url": "https://arxiv.org/list/cs.CL/recent",
+    "feed": "https://rss.arxiv.org/rss/cs.CL",
+    "tipo": "repositorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-lg",
+    "nombre": "arXiv cs.LG",
+    "url": "https://arxiv.org/list/cs.LG/recent",
+    "feed": "https://rss.arxiv.org/rss/cs.LG",
+    "tipo": "repositorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-cy",
+    "nombre": "arXiv cs.CY (computación y sociedad)",
+    "url": "https://arxiv.org/list/cs.CY/recent",
+    "feed": "https://rss.arxiv.org/rss/cs.CY",
+    "tipo": "repositorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "hf-papers",
+    "nombre": "Hugging Face Papers",
+    "url": "https://huggingface.co/papers",
+    "tipo": "agregador",
+    "rol": "curaduria"
+  },
+  {
+    "id": "papers-with-code",
+    "nombre": "Papers with Code (relanzado por Hugging Face, 2026)",
+    "url": "https://paperswithcode.co/",
+    "tipo": "agregador",
+    "rol": "curaduria"
+  },
+  {
+    "id": "semantic-scholar",
+    "nombre": "Semantic Scholar",
+    "url": "https://www.semanticscholar.org/",
+    "tipo": "buscador",
+    "rol": "primaria"
+  },
+  {
+    "id": "openreview",
+    "nombre": "OpenReview",
+    "url": "https://openreview.net/",
+    "tipo": "repositorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "epoch-ai",
+    "nombre": "Epoch AI (datos y benchmarks)",
+    "url": "https://epoch.ai/data",
+    "tipo": "datos",
+    "rol": "primaria"
+  },
+  {
+    "id": "stanford-ai-index",
+    "nombre": "Stanford AI Index",
+    "url": "https://hai.stanford.edu/ai-index",
+    "tipo": "informe",
+    "rol": "primaria"
+  },
+  {
+    "id": "state-of-ai",
+    "nombre": "State of AI Report",
+    "url": "https://www.stateof.ai/",
+    "tipo": "informe",
+    "rol": "curaduria"
+  },
+  {
+    "id": "artificial-analysis",
+    "nombre": "Artificial Analysis",
+    "url": "https://artificialanalysis.ai/",
+    "tipo": "datos",
+    "rol": "primaria"
+  },
+  {
+    "id": "lmarena",
+    "nombre": "LMArena",
+    "url": "https://lmarena.ai/",
+    "tipo": "datos",
+    "rol": "primaria"
+  },
+  {
+    "id": "metr",
+    "nombre": "METR",
+    "url": "https://metr.org/",
+    "tipo": "evaluacion",
+    "rol": "primaria"
+  },
+  {
+    "id": "ai-incident-database",
+    "nombre": "AI Incident Database",
+    "url": "https://incidentdatabase.ai/",
+    "tipo": "datos",
+    "rol": "primaria"
+  },
+  {
+    "id": "owid-ai",
+    "nombre": "Our World in Data: IA",
+    "url": "https://ourworldindata.org/artificial-intelligence",
+    "tipo": "datos",
+    "rol": "curaduria"
+  },
+  {
+    "id": "philpapers-ai",
+    "nombre": "PhilPapers: Philosophy of AI",
+    "url": "https://philpapers.org/browse/philosophy-of-artificial-intelligence",
+    "tipo": "repositorio",
+    "rol": "primaria"
+  },
+  {
+    "id": "oecd-ai",
+    "nombre": "OECD.AI y monitor de incidentes AIM",
+    "url": "https://oecd.ai/",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "un-scientific-panel-ai",
+    "nombre": "Panel Científico Internacional de la ONU sobre IA",
+    "url": "https://www.un.org/independent-international-scientific-panel-ai",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "un-global-dialogue-ai",
+    "nombre": "Diálogo Global sobre Gobernanza de la IA (ONU)",
+    "url": "https://www.un.org/global-dialogue-ai-governance",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "intl-ai-safety-report",
+    "nombre": "International AI Safety Report",
+    "url": "https://internationalaisafetyreport.org/",
+    "tipo": "informe",
+    "rol": "primaria"
+  },
+  {
+    "id": "unesco-ai-ethics",
+    "nombre": "UNESCO: Ética de la IA",
+    "url": "https://www.unesco.org/es/artificial-intelligence",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "eu-ai-act",
+    "nombre": "EU AI Act Explorer y newsletter",
+    "url": "https://artificialintelligenceact.eu/",
+    "tipo": "seguimiento",
+    "rol": "curaduria"
+  },
+  {
+    "id": "iapp-ai-tracker",
+    "nombre": "IAPP Global AI Law and Policy Tracker",
+    "url": "https://iapp.org/resources/article/global-ai-legislation-tracker",
+    "tipo": "seguimiento",
+    "rol": "curaduria"
+  },
+  {
+    "id": "stanford-hai-policy",
+    "nombre": "Stanford HAI: Policy",
+    "url": "https://hai.stanford.edu/topics/regulation-policy-governance",
+    "tipo": "academia",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cset",
+    "nombre": "CSET Georgetown",
+    "url": "https://cset.georgetown.edu/",
+    "tipo": "think-tank",
+    "rol": "secundaria"
+  },
+  {
+    "id": "ada-lovelace",
+    "nombre": "Ada Lovelace Institute",
+    "url": "https://www.adalovelaceinstitute.org/",
+    "tipo": "think-tank",
+    "rol": "secundaria"
+  },
+  {
+    "id": "ai-now",
+    "nombre": "AI Now Institute",
+    "url": "https://ainowinstitute.org/",
+    "tipo": "think-tank",
+    "rol": "secundaria"
+  },
+  {
+    "id": "fli",
+    "nombre": "Future of Life Institute (newsletters)",
+    "url": "https://futureoflife.org/newsletters/",
+    "tipo": "ong",
+    "rol": "secundaria"
+  },
+  {
+    "id": "montreal-ai-ethics",
+    "nombre": "Montreal AI Ethics Institute",
+    "url": "https://montrealethics.ai/",
+    "tipo": "ong",
+    "rol": "curaduria"
+  },
+  {
+    "id": "tech-policy-press",
+    "nombre": "Tech Policy Press",
+    "url": "https://www.techpolicy.press/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "algorithmwatch",
+    "nombre": "AlgorithmWatch",
+    "url": "https://algorithmwatch.org/en/",
+    "tipo": "ong",
+    "rol": "secundaria"
+  },
+  {
+    "id": "r-artificial",
+    "nombre": "r/artificial",
+    "url": "https://www.reddit.com/r/artificial/",
+    "feed": "https://www.reddit.com/r/artificial/top/.rss?t=day",
+    "tipo": "comunidad",
+    "rol": "comunidad"
+  },
+  {
+    "id": "hacker-news",
+    "nombre": "Hacker News (filtrado IA, más de 100 puntos)",
+    "url": "https://news.ycombinator.com/",
+    "feed": "https://hnrss.org/newest?q=AI&points=100",
+    "tipo": "comunidad",
+    "rol": "comunidad"
+  },
+  {
+    "id": "github-trending",
+    "nombre": "GitHub Trending",
+    "url": "https://github.com/trending",
+    "tipo": "comunidad",
+    "rol": "comunidad"
+  },
+  {
+    "id": "x-akhaliq",
+    "nombre": "AK (@_akhaliq) en X",
+    "url": "https://x.com/_akhaliq",
+    "tipo": "red-social",
+    "rol": "comunidad"
+  },
+  {
+    "id": "x-karpathy",
+    "nombre": "Andrej Karpathy en X",
+    "url": "https://x.com/karpathy",
+    "tipo": "red-social",
+    "rol": "comunidad"
+  },
+  {
+    "id": "podcast-latent-space",
+    "nombre": "Latent Space (pódcast)",
+    "url": "https://www.latent.space/podcast",
+    "tipo": "podcast",
+    "rol": "curaduria"
+  },
+  {
+    "id": "podcast-dwarkesh",
+    "nombre": "Dwarkesh Podcast",
+    "url": "https://www.dwarkesh.com/",
+    "tipo": "podcast",
+    "rol": "curaduria"
+  },
+  {
+    "id": "podcast-hard-fork",
+    "nombre": "Hard Fork (New York Times)",
+    "url": "https://www.nytimes.com/column/hard-fork",
+    "tipo": "podcast",
+    "rol": "secundaria"
+  },
+  {
+    "id": "yt-mlst",
+    "nombre": "Machine Learning Street Talk",
+    "url": "https://www.youtube.com/@MachineLearningStreetTalk",
+    "tipo": "youtube",
+    "rol": "curaduria"
+  },
+  {
+    "id": "yt-ai-daily-brief",
+    "nombre": "The AI Daily Brief",
+    "url": "https://www.youtube.com/@AIDailyBrief",
+    "tipo": "youtube",
+    "rol": "curaduria"
+  },
+  {
+    "id": "yt-two-minute-papers",
+    "nombre": "Two Minute Papers",
+    "url": "https://www.youtube.com/@TwoMinutePapers",
+    "tipo": "youtube",
+    "rol": "curaduria"
+  },
+  {
+    "id": "yt-ai-explained",
+    "nombre": "AI Explained",
+    "url": "https://www.youtube.com/@aiexplained-official",
+    "tipo": "youtube",
+    "rol": "curaduria"
+  },
+  {
+    "id": "yt-3blue1brown",
+    "nombre": "3Blue1Brown",
+    "url": "https://www.youtube.com/@3blue1brown",
+    "tipo": "youtube",
+    "rol": "curaduria"
+  },
+  {
+    "id": "discord-hf",
+    "nombre": "Discord de Hugging Face",
+    "url": "https://huggingface.co/discord-community",
+    "tipo": "comunidad",
+    "rol": "comunidad"
+  },
+  {
+    "id": "ilia",
+    "nombre": "ILIA (CEPAL y CENIA)",
+    "url": "https://www.cepal.org/es/publicaciones/90413-indice-latinoamericano-inteligencia-artificial-ilia-2026",
+    "tipo": "informe",
+    "rol": "primaria"
+  },
+  {
+    "id": "cepal",
+    "nombre": "CEPAL",
+    "url": "https://www.cepal.org/es",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "latam-gpt",
+    "nombre": "Latam-GPT",
+    "url": "https://www.latamgpt.org/",
+    "tipo": "proyecto",
+    "rol": "primaria"
+  },
+  {
+    "id": "caf",
+    "nombre": "CAF, banco de desarrollo de América Latina y el Caribe",
+    "url": "https://www.caf.com/es/",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "fair-lac",
+    "nombre": "fAIr LAC (BID)",
+    "url": "https://fairlac.iadb.org/",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "unesco-santiago",
+    "nombre": "UNESCO Santiago (Oficina Regional)",
+    "url": "https://www.unesco.org/es/fieldoffice/santiago",
+    "tipo": "organismo",
+    "rol": "primaria"
+  },
+  {
+    "id": "khipu",
+    "nombre": "KHIPU",
+    "url": "https://khipu.ai/",
+    "tipo": "comunidad-cientifica",
+    "rol": "primaria"
+  },
+  {
+    "id": "latinx-in-ai",
+    "nombre": "LatinX in AI",
+    "url": "https://www.latinxinai.org/",
+    "tipo": "comunidad",
+    "rol": "comunidad"
+  },
+  {
+    "id": "derechos-digitales",
+    "nombre": "Derechos Digitales",
+    "url": "https://www.derechosdigitales.org/",
+    "tipo": "ong",
+    "rol": "secundaria"
+  },
+  {
+    "id": "karisma",
+    "nombre": "Fundación Karisma",
+    "url": "https://info.karisma.org.co/",
+    "tipo": "ong",
+    "rol": "secundaria"
+  },
+  {
+    "id": "internetlab",
+    "nombre": "InternetLab",
+    "url": "https://internetlab.org.br/",
+    "tipo": "ong",
+    "rol": "secundaria"
+  },
+  {
+    "id": "access-now",
+    "nombre": "Access Now",
+    "url": "https://www.accessnow.org/es/",
+    "tipo": "ong",
+    "rol": "secundaria"
+  },
+  {
+    "id": "circuito",
+    "nombre": "Circuito x Linterna Verde",
+    "url": "https://circuito.substack.com/",
+    "feed": "https://circuito.substack.com/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "estrategia-aleph",
+    "nombre": "estrategIA (ALEPH)",
+    "url": "https://estrategiabyaleph.substack.com/",
+    "feed": "https://estrategiabyaleph.substack.com/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "dpl-news",
+    "nombre": "DPL News",
+    "url": "https://dplnews.com/",
+    "feed": "https://dplnews.com/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "bloomberg-linea-tec",
+    "nombre": "Bloomberg Línea: Tecnología",
+    "url": "https://www.bloomberglinea.com/tecnologia/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "el-pais-tecnologia",
+    "nombre": "El País: Tecnología",
+    "url": "https://elpais.com/tecnologia/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "xataka-ia",
+    "nombre": "Xataka: Inteligencia artificial",
+    "url": "https://www.xataka.com/categoria/inteligencia-artificial",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "error500",
+    "nombre": "Error500 (Antonio Ortiz)",
+    "url": "https://www.error500.net/",
+    "feed": "https://www.error500.net/feed",
+    "tipo": "newsletter",
+    "rol": "curaduria"
+  },
+  {
+    "id": "monos-estocasticos",
+    "nombre": "monos estocásticos (pódcast)",
+    "url": "https://cuonda.com/monos-estocasticos",
+    "feed": "https://cuonda.com/monos-estocasticos/feed",
+    "tipo": "podcast",
+    "rol": "curaduria"
+  },
+  {
+    "id": "dotcsv",
+    "nombre": "DotCSV (Carlos Santana Vega)",
+    "url": "https://www.youtube.com/@DotCSV",
+    "tipo": "youtube",
+    "rol": "curaduria"
+  },
+  {
+    "id": "odiseia",
+    "nombre": "OdiseIA",
+    "url": "https://www.odiseia.org/",
+    "tipo": "observatorio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "chequeado",
+    "nombre": "Chequeado",
+    "url": "https://chequeado.com/",
+    "tipo": "verificador",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-tramitacion-ley-ia",
+    "nombre": "Tramitación del proyecto de ley de IA (boletines 16821-19 y 15869-19)",
+    "url": "https://www.camara.cl/legislacion/proyectosdeley/tramitacion.aspx?prmID=17429",
+    "tipo": "congreso",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-senado",
+    "nombre": "Senado de Chile",
+    "url": "https://www.senado.cl/",
+    "tipo": "congreso",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-bcn",
+    "nombre": "BCN y Ley Chile",
+    "url": "https://www.bcn.cl/leychile",
+    "tipo": "congreso",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-minciencia",
+    "nombre": "Ministerio de Ciencia, Tecnología, Conocimiento e Innovación",
+    "url": "https://www.minciencia.gob.cl/",
+    "tipo": "gobierno",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-cplt",
+    "nombre": "Consejo para la Transparencia",
+    "url": "https://www.consejotransparencia.cl/",
+    "tipo": "organo-autonomo",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-anci",
+    "nombre": "Agencia Nacional de Ciberseguridad (ANCI)",
+    "url": "https://anci.gob.cl/",
+    "tipo": "gobierno",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-corfo",
+    "nombre": "CORFO",
+    "url": "https://www.corfo.cl/",
+    "tipo": "gobierno",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-cenia",
+    "nombre": "CENIA",
+    "url": "https://cenia.cl/",
+    "tipo": "centro-investigacion",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-imfd",
+    "nombre": "Instituto Milenio Fundamentos de los Datos (iMFD)",
+    "url": "https://imfd.cl/",
+    "tipo": "centro-investigacion",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-goblab-uai",
+    "nombre": "GobLab UAI",
+    "url": "https://goblab.uai.cl/",
+    "tipo": "academia",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-data-observatory",
+    "nombre": "Data Observatory",
+    "url": "https://www.dataobservatory.net/",
+    "tipo": "centro-tecnologico",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-inria-chile",
+    "nombre": "Inria Chile",
+    "url": "https://inria.cl/",
+    "tipo": "centro-investigacion",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-dcc-uchile",
+    "nombre": "DCC Universidad de Chile",
+    "url": "https://www.dcc.uchile.cl/",
+    "tipo": "academia",
+    "rol": "primaria"
+  },
+  {
+    "id": "cl-congreso-futuro",
+    "nombre": "Congreso Futuro",
+    "url": "https://congresofuturo.cl/",
+    "tipo": "evento",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-pais-digital",
+    "nombre": "Fundación País Digital",
+    "url": "https://www.paisdigital.org/",
+    "tipo": "fundacion",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-acti",
+    "nombre": "ACTI",
+    "url": "https://www.acti.cl/",
+    "tipo": "gremio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-chiletec",
+    "nombre": "Chiletec",
+    "url": "https://chiletec.org/",
+    "tipo": "gremio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-df-lab",
+    "nombre": "DF Lab (Diario Financiero)",
+    "url": "https://www.df.cl/df-lab",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-emol-tecnologia",
+    "nombre": "Emol Tecnología",
+    "url": "https://www.emol.com/tecnologia/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-la-tercera",
+    "nombre": "La Tercera",
+    "url": "https://www.latercera.com/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-cnn-bits",
+    "nombre": "CNN Chile Bits",
+    "url": "https://www.cnnchile.com/bits/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-ex-ante",
+    "nombre": "Ex-Ante: Tecnología y futuro",
+    "url": "https://www.ex-ante.cl/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-ciper",
+    "nombre": "CIPER Chile",
+    "url": "https://www.ciperchile.cl/",
+    "feed": "https://www.ciperchile.cl/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-radio-uchile",
+    "nombre": "Radio Universidad de Chile",
+    "url": "https://radio.uchile.cl/",
+    "feed": "https://radio.uchile.cl/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-portal-innova",
+    "nombre": "Portal Innova",
+    "url": "https://portalinnova.cl/",
+    "feed": "https://portalinnova.cl/feed/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "cl-fayerwayer",
+    "nombre": "FayerWayer",
+    "url": "https://www.fayerwayer.com/",
+    "tipo": "medio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "govai",
+    "nombre": "Centre for the Governance of AI",
+    "url": "https://governance.ai",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "oxford-ethics",
+    "nombre": "Oxford Institute for Ethics in AI",
+    "url": "https://oxford-aiethics.ox.ac.uk",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "leverhulme",
+    "nombre": "Leverhulme Centre for the Future of Intelligence",
+    "url": "https://lcfi.ac.uk",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "eleos",
+    "nombre": "Eleos AI",
+    "url": "https://eleosai.org",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "uk-aisi",
+    "nombre": "UK AI Security Institute",
+    "url": "https://aisi.gov.uk",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "us-aisi",
+    "nombre": "US AI Safety Institute",
+    "url": "https://nist.gov",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "eu-ai-office",
+    "nombre": "EU AI Office",
+    "url": "https://digital-strategy.ec.europa.eu",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "senado",
+    "nombre": "Senado de Chile",
+    "url": "https://senado.cl",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "bcn",
+    "nombre": "Biblioteca del Congreso Nacional",
+    "url": "https://bcn.cl",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "diario-oficial",
+    "nombre": "Diario Oficial de Chile",
+    "url": "https://diariooficial.interior.gob.cl",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "aiaaic",
+    "nombre": "AIAAIC",
+    "url": "https://aiaaic.org",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "unesco",
+    "nombre": "UNESCO",
+    "url": "https://unesco.org",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "iapp",
+    "nombre": "IAPP",
+    "url": "https://iapp.org",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "uniandes",
+    "nombre": "Sistemas Algorítmicos Públicos",
+    "url": "https://sistemasalgoritmicos.uniandes.edu.co",
+    "tipo": "institucion",
+    "rol": "primaria"
+  },
+  {
+    "id": "oecd-incidentes",
+    "nombre": "OECD AI Incidents and Hazards Monitor",
+    "url": "https://oecd.ai/en/incidents",
+    "feed": null,
+    "tipo": "observatorio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "unesco-observatorio",
+    "nombre": "UNESCO Global AI Ethics and Governance Observatory",
+    "url": "https://www.unesco.org/ethics-ai/en",
+    "feed": null,
+    "tipo": "observatorio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "unesco-cepal-educacion",
+    "nombre": "Observatorio de IA en Educación de UNESCO y CEPAL",
+    "url": "https://www.cepal.org",
+    "feed": null,
+    "tipo": "observatorio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "algoritmos-uniandes",
+    "nombre": "Sistemas Algorítmicos Públicos Uniandes",
+    "url": "https://algoritmos.uniandes.edu.co",
+    "feed": null,
+    "tipo": "observatorio",
+    "rol": "secundaria"
+  },
+  {
+    "id": "psyarxiv",
+    "nombre": "PsyArXiv",
+    "url": "https://psyarxiv.com",
+    "feed": null,
+    "tipo": "academica",
+    "rol": "secundaria"
+  },
+  {
+    "id": "philpapers",
+    "nombre": "PhilPapers",
+    "url": "https://philpapers.org",
+    "feed": null,
+    "tipo": "academica",
+    "rol": "secundaria"
+  },
+  {
+    "id": "pubmed",
+    "nombre": "PubMed",
+    "url": "https://pubmed.ncbi.nlm.nih.gov",
+    "feed": null,
+    "tipo": "academica",
+    "rol": "secundaria"
+  },
+  {
+    "id": "crossref",
+    "nombre": "Crossref",
+    "url": "https://www.crossref.org",
+    "feed": null,
+    "tipo": "academica",
+    "rol": "secundaria"
+  },
+  {
+    "id": "arxiv-cs-ai",
+    "nombre": "arXiv cs.AI",
+    "url": "https://arxiv.org/list/cs.AI/recent",
+    "feed": "https://export.arxiv.org/api/query?search_query=cat:cs.AI&start=0&max_results=8&sortBy=submittedDate&sortOrder=descending",
+    "tipo": "academica",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-cs-cl",
+    "nombre": "arXiv cs.CL",
+    "url": "https://arxiv.org/list/cs.CL/recent",
+    "feed": "https://export.arxiv.org/api/query?search_query=cat:cs.CL&start=0&max_results=8&sortBy=submittedDate&sortOrder=descending",
+    "tipo": "academica",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-cs-cy",
+    "nombre": "arXiv cs.CY",
+    "url": "https://arxiv.org/list/cs.CY/recent",
+    "feed": "https://export.arxiv.org/api/query?search_query=cat:cs.CY&start=0&max_results=8&sortBy=submittedDate&sortOrder=descending",
+    "tipo": "academica",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-cs-hc",
+    "nombre": "arXiv cs.HC",
+    "url": "https://arxiv.org/list/cs.HC/recent",
+    "feed": "https://export.arxiv.org/api/query?search_query=cat:cs.HC&start=0&max_results=8&sortBy=submittedDate&sortOrder=descending",
+    "tipo": "academica",
+    "rol": "primaria"
+  },
+  {
+    "id": "arxiv-cs-ro",
+    "nombre": "arXiv cs.RO",
+    "url": "https://arxiv.org/list/cs.RO/recent",
+    "feed": "https://export.arxiv.org/api/query?search_query=cat:cs.RO&start=0&max_results=8&sortBy=submittedDate&sortOrder=descending",
+    "tipo": "academica",
+    "rol": "primaria"
+  }
+]

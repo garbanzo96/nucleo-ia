@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /sala/
+Disallow: /nucleo-ia/sala/

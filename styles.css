@@ -1,6 +1,8 @@
-/* Núcleo IA · web pública. Colores, radios y tipografía del manual de marca v3. */
+/* Núcleo IA · web pública. Tokens de identidad v4. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&family=Newsreader:wght@400;600;700&display=swap');
 :root {
   color-scheme: dark;
+  --titulo: "Newsreader", Arial, sans-serif; --cuerpo: "Inter", Arial, sans-serif; --mono: "IBM Plex Mono", Arial, sans-serif; --borde: #23405D;
   --fondo: #000; --panel: #0B1725; --panel-2: #102238; --apagado: #1E3550;
   --texto: #fff; --secundario: #A8B5C7; --cian: #00B5E8; --azul: #075BFF;
   --radio: 24px; --control: 12px; --ancho: 1200px; --margen: 24px; --barra: 72px;
@@ -8,11 +10,12 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: calc(var(--barra) + 24px); }
-body { margin: 0; background: var(--fondo); color: var(--texto); font: 18px/1.5 Arial, Helvetica, sans-serif; overflow-x: clip; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font: 18px/1.5 var(--cuerpo); overflow-x: clip; -webkit-font-smoothing: antialiased; }
 img, canvas { display: block; max-width: 100%; }
 h1, h2, h3, p, ul, figure { margin: 0; }
 ul { padding: 0; list-style: none; }
-h1, h2, h3 { text-wrap: balance; }
+h1, h2, h3 { text-wrap: balance; font-family: var(--titulo); }
+.fuente, time, .nota-pie { font-family: var(--mono); }
 h2 { font-size: clamp(32px, 4.2vw, 56px); line-height: 1.04; letter-spacing: -.035em; }
 h3 { font-size: clamp(20px, 1.7vw, 24px); line-height: 1.2; letter-spacing: -.015em; margin-bottom: .45em; }
 p { max-width: 62ch; }
