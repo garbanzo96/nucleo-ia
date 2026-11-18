@@ -90,7 +90,7 @@ async function prepararImagenes(){
  if(post.laminas.length<6||post.laminas.length>10)throw Error('El carrusel debe tener de 6 a 10 láminas.');
  if(!post.laminas.every(l=>l.titulo&&l.alt&&l.fuente))throw Error('Completa el título, fuente y texto alternativo de cada lámina.');
  const {toJpeg}=await import('https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/+esm');await document.fonts.ready;
- if(!document.fonts.check('600 90px Newsreader')||!document.fonts.check('400 38px Inter'))throw Error('No cargaron las tipografías. Revisa la conexión y vuelve a intentar.');
+ if(!document.fonts.check('700 80px Inter')||!document.fonts.check('400 38px Inter'))throw Error('No cargaron las tipografías. Revisa la conexión y vuelve a intentar.');
  const before=current, imgs=[];
  try{for(let n=0;n<post.laminas.length;n++){current=n;updatePreview();const preview=$('preview'),content=preview.querySelector('.slide-content > div:nth-child(2)'),footer=preview.querySelector('footer');
   if(content.getBoundingClientRect().bottom>footer.getBoundingClientRect().top||content.scrollWidth>content.clientWidth)throw Error(`El texto de la lámina ${n+1} no cabe. Acórtalo antes de aprobar.`);

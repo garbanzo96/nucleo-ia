@@ -1,8 +1,8 @@
 /* Núcleo IA · web pública. Tokens de identidad v4. */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&family=Newsreader:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&display=swap');
 :root {
   color-scheme: dark;
-  --titulo: "Newsreader", Arial, sans-serif; --cuerpo: "Inter", Arial, sans-serif; --mono: "IBM Plex Mono", Arial, sans-serif; --borde: #23405D;
+  --titulo: "Inter", Arial, sans-serif; --cuerpo: "Inter", Arial, sans-serif; --mono: "IBM Plex Mono", Arial, sans-serif; --borde: #23405D;
   --fondo: #000; --panel: #0B1725; --panel-2: #102238; --apagado: #1E3550;
   --texto: #fff; --secundario: #A8B5C7; --cian: #00B5E8; --azul: #075BFF;
   --radio: 24px; --control: 12px; --ancho: 1200px; --margen: 24px; --barra: 72px;
