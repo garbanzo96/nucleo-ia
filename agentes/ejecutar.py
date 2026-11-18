@@ -15,6 +15,7 @@ from urllib.request import Request, urlopen
 from xml.etree.ElementTree import ParseError
 
 import academico
+import clasificar
 import embeddings
 import radar
 from nucleo import canonical_url, deduplicar, resolver_primaria
@@ -65,9 +66,7 @@ def analizar_noticia(item, fuente):
         raw, final=radar.leer(item['url'])
         primary=resolver_primaria(final,raw.decode('utf-8','replace'),radar.disponible)
     except (HTTPError,URLError,ValueError,TimeoutError,OSError): primary=None
-    # Prioridad provisional: trazabilidad + peso editorial. No son conclusiones de un modelo.
-    score=round(min(10, max(0, 3 + float(fuente.get('peso',1)) + (2 if primary else 0))),1)
-    return {**item,'fuente_primaria':primary,'puntaje':score,'angulo':'Revisar las implicancias para la investigación y la gobernanza de la IA.', 'gancho':None}
+    return {**item,'fuente_primaria':primary,'puntaje':None,'angulo':None,'gancho':None,'peso_fuente':float(fuente.get('peso',1))}
 
 
 def fecha_parseada(value):
@@ -81,7 +80,7 @@ def fecha_parseada(value):
     return date
 
 
-def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=()):
+def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=(), clasificacion=None):
     selected=fuentes[:limit] if limit else fuentes
     found=[]; fallos=0
     with ThreadPoolExecutor(max_workers=12) as pool:
@@ -105,7 +104,13 @@ def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=()):
         if primary: primary_seen.add(primary)
         grouped.append(item)
     output=grouped
+    if clasificacion:
+        try:
+            clasificar.clasificar(output,clasificacion['modelo'],clasificacion['prompt'],clasificacion['ejemplos'])
+        except Exception:
+            print('Clasificación no disponible; los temas quedan pendientes de evaluar.',file=sys.stderr)
     for item in output:
+        item.pop('peso_fuente',None)
         try:
             value = embeddings.vector(item['titulo'] + ' ' + (item.get('resumen') or ''))
             if value is not None: item['embedding'] = value
@@ -171,10 +176,17 @@ def run(tipo, job_id=None, limite=0):
         if tipo in ('noticias','ambos'):
             catalog=json.loads(Path(__file__).with_name('fuentes.json').read_text())
             db.insert('fuentes',[{k:f.get(k) for k in ('id','nombre','url','feed','tipo')} for f in catalog],True)
-            fuentes=db.rows('fuentes'); vistos=db.rows('candidatos','url,fuente_primaria'); seen=[c['url'] for c in vistos]
+            fuentes=db.rows('fuentes'); vistos=db.rows('candidatos','url,fuente_primaria,titulo,resumen,estado,creado_en'); seen=[c['url'] for c in vistos]
+            cfg={r['clave']:r['valor'] for r in db.rows('config','clave,valor')}
+            prompts=db.rows('prompts','agente,contenido,activa')
+            radar_prompt=next((p['contenido'] for p in prompts if p.get('agente')=='radar_noticias' and p.get('activa')),None)
+            ejemplos=sorted((c for c in vistos if c.get('estado') in ('guardado','usado','descartado')),key=lambda c:c.get('creado_en') or '',reverse=True)[:20]
+            muestras=[{'titulo':c.get('titulo'),'resumen':(c.get('resumen') or '')[:300],'estado':c['estado']} for c in ejemplos]
+            filtro=cfg.get('modelos',{}).get('filtrar')
+            clasificacion={'modelo':filtro,'prompt':radar_prompt,'ejemplos':muestras} if isinstance(filtro,dict) and radar_prompt else None
             trabajos=db.rows('trabajos','tipo,estado,terminado_en'); fechas=[fecha_parseada(t.get('terminado_en')) for t in trabajos if t.get('estado')=='completado' and t.get('tipo') in ('noticias','ambos')]
             desde=max((f for f in fechas if f),default=None)
-            count,total,failed=noticias(db,fuentes,seen,limite,desde,[c['fuente_primaria'] for c in vistos if c.get('fuente_primaria')])
+            count,total,failed=noticias(db,fuentes,seen,limite,desde,[c['fuente_primaria'] for c in vistos if c.get('fuente_primaria')],clasificacion)
             if total and failed==total: raise RuntimeError('No se pudo consultar ninguna fuente de noticias.')
             detalle.append(f'Noticias: {count} temas nuevos; {failed} de {total} fuentes no respondieron.')
         if tipo in ('academico','ambos'):

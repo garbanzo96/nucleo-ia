@@ -14,7 +14,7 @@ Deno.serve(async req=>{
     const esquema={laminas:[{titulo:'',cuerpo:'',fuente:'',alt:''}],ganchos:[{tipo:'',texto:''}],descripcion:'',sugerencia_imagen:{mostrar:'',terminos:'',donde:'',licencia:''}};
     const pedido={fuente,formato:body.formato,tipo_gancho:body.tipo_gancho,tipos_recientes:ctx.anteriores.map((p:any)=>p.tipo_gancho),esquema,limites:'6 a 10 láminas, 3 a 5 ganchos de tipos distintos, máximo 40 palabras por lámina y máximo 12 palabras en el primer título. La penúltima lámina explica límites. La descripción no contiene enlaces adicionales ni DOI.'};
     const borrador=await modeloJson(ctx.config.modelos.redactar,ctx.prompts.redactar+'\n'+politica,pedido);
-    const corregido=await modeloJson(ctx.config.modelos.voz,ctx.prompts.voz+'\n'+politica+' Conserva exactamente la estructura JSON entregada. No incorpores hechos ni cifras.',{fuente,borrador,lista_negra:ctx.config.lista_negra});
+    const corregido=await modeloJson(ctx.config.modelos.voz,ctx.prompts.voz+'\n'+politica+' Conserva la estructura JSON, no incorpores hechos ni cifras y compara el gancho y estructura con los ejemplos para evitar repeticiones.',{fuente,borrador,lista_negra:ctx.config.lista_negra,ejemplos_voz:ctx.ejemplos});
     validarBorrador(corregido,fuente.titulo+' '+fuente.resumen,fuente.url,ctx.config.lista_negra,ctx.anteriores,body.formato,body.tipo_gancho);
     const informe=await modeloJson(ctx.config.modelos.verificar,ctx.prompts.verificar+'\n'+politica+' Responde {"laminas":[{"respaldada":true,"explicacion":"..."}],"descripcion_respaldada":true}; una entrada por lámina en orden. Si cualquier afirmación carece de apoyo, usa false.',{fuente,borrador:corregido});
     validarVerificacion(informe,corregido.laminas.length);

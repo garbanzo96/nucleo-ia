@@ -53,3 +53,10 @@ test('la imagen de fondo solo apunta a un archivo privado válido y conserva aju
  assert.throws(()=>validarFondo({encuadre:101}));
  assert.throws(()=>validarFondo({oscurecimiento:-1}));
 });
+
+test('un cliente anterior conserva el fondo omitido y puede quitarlo explícitamente',async()=>{
+ const {preservarFondo}=await import('../_shared/fondo.mjs');
+ const actual={imagen_privada:'fondos/11111111-1111-4111-8111-111111111111.png',encuadre:32,oscurecimiento:44};
+ assert.deepEqual(preservarFondo({},actual),actual);
+ assert.equal(preservarFondo({imagen_privada:null},actual).imagen_privada,null);
+});

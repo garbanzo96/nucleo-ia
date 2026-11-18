@@ -108,3 +108,8 @@ export function preservarApoyos(raw,actual){
   const sugerencia_imagen=Object.hasOwn(raw,'sugerencia_imagen')?raw.sugerencia_imagen:actual?.sugerencia_imagen;
   return {...raw,ganchos,sugerencia_imagen};
 }
+
+export function ejemplosVoz(posts){
+  if(!Array.isArray(posts))return [];
+  return posts.slice(0,10).map(p=>({formato:p.formato,tipo_gancho:p.tipo_gancho,descripcion:p.descripcion,laminas:p.laminas,diff:p.diff}));
+}

@@ -39,7 +39,7 @@ export function leerJpeg(base64){
   throw Error('No se encontró el tamaño del JPEG');
 }
 export async function sha256(data){const hash=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash),n=>n.toString(16).padStart(2,'0')).join('')}
-export async function huellaPost(p){return sha256(new TextEncoder().encode(JSON.stringify({formato:p.formato,tipo_gancho:p.tipo_gancho,laminas:p.laminas,descripcion:p.descripcion,credito_imagen:p.credito_imagen,checklist:p.checklist,fuente_primaria:p.fuente_primaria})))}
+export async function huellaPost(p){return sha256(new TextEncoder().encode(JSON.stringify({formato:p.formato,tipo_gancho:p.tipo_gancho,laminas:p.laminas,descripcion:p.descripcion,credito_imagen:p.credito_imagen,checklist:p.checklist,fuente_primaria:p.fuente_primaria,imagen_privada:p.imagen_privada,encuadre:p.encuadre,oscurecimiento:p.oscurecimiento})))}
 export async function huellaFuente(f){return sha256(new TextEncoder().encode(JSON.stringify(f)))}
 export function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 export function paginaNota(post,fuente,slug){

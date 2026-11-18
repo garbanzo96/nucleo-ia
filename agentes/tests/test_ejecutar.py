@@ -47,3 +47,22 @@ class Destinos(unittest.TestCase):
         with self.assertRaises(ValueError): validar_destino('https://usuario:clave@ejemplo.test/',publico)
         with self.assertRaises(ValueError): validar_destino('https://ejemplo.test:8080/',publico)
         validar_destino('https://ejemplo.test/',publico)
+
+class RedSegura(unittest.TestCase):
+    def test_conecta_a_ip_validada_y_rechaza_redireccion_a_local(self):
+        from radar import obtener_publico
+        def resolver(host,port,**_):
+            ip='127.0.0.1' if host=='interno.test' else '1.1.1.1'
+            return [(None,None,None,None,(ip,port))]
+        conexiones=[]
+        class R:
+            status=302;reason='Found'
+            def getheader(self,name): return 'http://interno.test/' if name.lower()=='location' else None
+            def read(self,n): return b''
+        class C:
+            def request(self,*a,**k): pass
+            def getresponse(self): return R()
+            def close(self): pass
+        def fabrica(host,port,ip,https,timeout): conexiones.append((host,ip));return C()
+        with self.assertRaises(ValueError): obtener_publico('https://publico.test/a',resolver=resolver,fabrica=fabrica)
+        self.assertEqual(conexiones,[('publico.test','1.1.1.1')])

@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.49.8';
 import { validarTexto, validarApoyos } from './editorial.mjs';
 import { validarCuenta } from './publicacion.mjs';
+import { validarFondo } from './fondo.mjs';
 export function adminClient(){
   const url=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if(!url||!key)throw Error('Falta configurar el servidor');
@@ -21,7 +22,7 @@ export function postEntrada(raw:any,fuente:any,prohibidas:string[]){
   validarTexto(raw.descripcion,evidence,fuente.url,prohibidas);
   const apoyos=validarApoyos(raw.ganchos,raw.sugerencia_imagen,evidence,fuente.url,prohibidas);
   const checks=raw.checklist||{};
-  return {...apoyos,formato:raw.formato,tipo_gancho:raw.tipo_gancho,laminas:raw.laminas.map((l:any)=>({titulo:l.titulo,cuerpo:l.cuerpo,fuente:l.fuente,alt:l.alt})),descripcion:raw.descripcion,credito_imagen:raw.credito_imagen,checklist:Object.fromEntries(['fuente_leida','cifras_verificadas','permiso_imagen','credito_imagen','sin_marcadores'].map(k=>[k,checks[k]===true])),fuente_primaria:fuente.url};
+  return {...apoyos,...validarFondo(raw),formato:raw.formato,tipo_gancho:raw.tipo_gancho,laminas:raw.laminas.map((l:any)=>({titulo:l.titulo,cuerpo:l.cuerpo,fuente:l.fuente,alt:l.alt})),descripcion:raw.descripcion,credito_imagen:raw.credito_imagen,checklist:Object.fromEntries(['fuente_leida','cifras_verificadas','permiso_imagen','credito_imagen','sin_marcadores'].map(k=>[k,checks[k]===true])),fuente_primaria:fuente.url};
 }
 export async function datosPost(db:any,id:string){
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id||''))throw Error('Post inválido');

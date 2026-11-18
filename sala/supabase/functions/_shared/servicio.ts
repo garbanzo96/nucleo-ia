@@ -1,5 +1,5 @@
 import { generar } from './modelo.ts';
-import { arxivId, arxivFuente, doiId, crossrefFuente, rotacion, parseJson, tiposGancho } from './editorial.mjs';
+import { arxivId, arxivFuente, doiId, crossrefFuente, rotacion, parseJson, tiposGancho, ejemplosVoz } from './editorial.mjs';
 
 export async function cargarFuente(url: string) {
   const host=new URL(url).hostname;
@@ -36,12 +36,15 @@ export async function contexto(db: any, formato: string, gancho: string) {
   const recent=await db.from('posts').select('formato,tipo_gancho,publicado_en').eq('estado','publicado').order('publicado_en',{ascending:false}).limit(n||1);
   if(recent.error)throw new Error('No se pudo comprobar la rotación');
   const anteriores=rotacion(formato,gancho,n?recent.data:[],n);
+  const voz=await db.from('posts').select('formato,tipo_gancho,descripcion,laminas,diff').in('estado',['aprobado','publicado']).order('aprobado_en',{ascending:false,nullsFirst:false}).limit(10);
+  if(voz.error)throw new Error('No se pudo revisar el historial editorial');
+  const ejemplos=ejemplosVoz(voz.data);
   const promptsResult=await db.from('prompts').select('agente,contenido').in('agente',['redactar','verificar','voz']).eq('activa',true);
   if(promptsResult.error)throw new Error('No se pudieron leer los prompts');
   const prompts=Object.fromEntries(promptsResult.data.map((p:{agente:string,contenido:string})=>[p.agente,p.contenido])) as Record<string,string>;
   if(!prompts.redactar||!prompts.verificar||!prompts.voz)throw new Error('Faltan prompts activos');
   if(!config.modelos?.redactar||!config.modelos?.verificar||!config.modelos?.voz)throw new Error('Falta configurar los modelos');
-  return {config,prompts,anteriores};
+  return {config,prompts,anteriores,ejemplos};
 }
 
 export async function modeloJson(model: {proveedor:string,modelo:string}, sistema:string, data: unknown) {

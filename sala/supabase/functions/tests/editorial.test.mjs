@@ -37,3 +37,9 @@ test('admite DOI verificables sin abrir destinos arbitrarios',async()=>{
  validarTexto('Fuente: https://doi.org/10.1234/abc',f.titulo+' '+f.resumen,f.url,[]);
  assert.throws(()=>crossrefFuente({...obj,message:{...obj.message,DOI:'10.1234/otro'}},'10.1234/abc'));
 });
+
+test('usa hasta diez publicaciones recientes y sus correcciones como ejemplos de voz',async()=>{
+ const {ejemplosVoz}=await import('../_shared/editorial.mjs');
+ const posts=Array.from({length:12},(_,i)=>({formato:'paper',tipo_gancho:'pregunta',descripcion:'Texto '+i,laminas:[{titulo:'Lámina'}],diff:{antes:'borrador',despues:'corrección'}}));
+ const examples=ejemplosVoz(posts);assert.equal(examples.length,10);assert.equal(examples[0].diff.despues,'corrección');assert.equal(examples[0].tipo_gancho,'pregunta');
+});

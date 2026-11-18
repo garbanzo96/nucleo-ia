@@ -12,7 +12,7 @@ Deno.serve(async req=>{
     const ctx=await contexto(db,b.formato,b.tipo_gancho), fuente=await cargarFuente(b.fuente_primaria);
     const esquema=b.tipo==='gancho'?{texto:''}:{titulo:'',cuerpo:'',fuente:'',alt:''};
     const salida=await modeloJson(ctx.config.modelos.redactar,ctx.prompts.redactar+'\n'+politica+' Reescribe el contenido indicado y devuelve el esquema solicitado.',{fuente,contenido:b.contenido,instrucciones:b.instrucciones,esquema});
-    const limpio=await modeloJson(ctx.config.modelos.voz,ctx.prompts.voz+'\n'+politica+' Conserva la estructura JSON y no incorpores hechos ni cifras.',{fuente,contenido:salida,lista_negra:ctx.config.lista_negra});
+    const limpio=await modeloJson(ctx.config.modelos.voz,ctx.prompts.voz+'\n'+politica+' Conserva la estructura JSON, no incorpores hechos ni cifras y evita repetir el gancho o estructura de los ejemplos.',{fuente,contenido:salida,lista_negra:ctx.config.lista_negra,ejemplos_voz:ctx.ejemplos});
     const keys=b.tipo==='gancho'?['texto']:['titulo','cuerpo','fuente','alt'];
     if(!keys.every(k=>typeof limpio[k]==='string')||(b.tipo==='gancho'?!limpio.texto.trim():!limpio.titulo.trim()||!limpio.alt.trim()))throw new Error('Respuesta incompleta');
     const text=keys.map(k=>limpio[k]).join(' ');if(text.trim().split(/\s+/).length>40)throw new Error('Extensión excesiva');

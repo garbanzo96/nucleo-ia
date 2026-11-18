@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ALLOW_PAID_MODELS: ${{ vars.ALLOW_PAID_MODELS }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -34,6 +36,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Instalar proveedor opcional
+        if: ${{ vars.ALLOW_PAID_MODELS == 'true' }}
+        run: python -m pip install anthropic==2.8.0
       - name: Investigar y actualizar estado
         shell: bash
         run: |

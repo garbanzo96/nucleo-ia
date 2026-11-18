@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {identificador,ordenar} from '../_shared/expandir.mjs';
+test('solo acepta DOI o ID reconocibles de Semantic Scholar',()=>{assert.equal(identificador('10.1000/ejemplo'),'DOI:10.1000/ejemplo');assert.equal(identificador('a'.repeat(40)),'a'.repeat(40));for(const x of ['https://localhost','../otro','DOI:','10.1/x'])assert.throws(()=>identificador(x));});
+test('ordena por citas sin inventar datos faltantes',()=>{const lista=ordenar([{citedPaper:{title:'A',citationCount:2}},{citedPaper:{title:'B',citationCount:8}},{citedPaper:null}], 'citedPaper');assert.deepEqual(lista.map(x=>x.titulo),['B','A']);assert.equal(lista[0].url,null)});

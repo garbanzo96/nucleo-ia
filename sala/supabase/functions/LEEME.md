@@ -8,9 +8,9 @@ Por ahora se aceptan enlaces directos a resúmenes de arXiv y DOI en `https://do
 
 Se controla por código la forma del resultado, rotación por fecha real de publicación, cifras presentes en el resumen, enlaces, DOI y una parte de la lista negra. Que una cifra aparezca en el resumen no garantiza que se haya interpretado correctamente; tampoco la segunda pasada garantiza que una afirmación esté respaldada. Una persona debe leer la fuente y verificar hechos y cifras antes de aprobar. Si hay posts publicados sin `publicado_en`, no se genera contenido hasta corregir esas fechas.
 
-La migración y las funciones no han sido probadas con Supabase, Deno, Gemini, Claude ni red real. Las pruebas locales de las reglas usan `node --test sala/supabase/functions/tests/editorial.test.mjs` desde la raíz del repositorio. No activarlas en producción hasta probar autenticación, límites, conectividad, privacidad y validación de extremo a extremo.
+La migración y las funciones no han sido probadas con Supabase, Deno, Gemini, Claude ni red real. Las pruebas locales de las reglas usan `node --test sala/supabase/functions/tests/*.test.mjs` desde la raíz del repositorio. No activarlas en producción hasta probar autenticación, límites, conectividad, privacidad y validación de extremo a extremo.
 
-Pendiente: comparar el estilo y la estructura con los últimos diez posts, usar correcciones humanas como ejemplos y ampliar las fuentes primarias admitidas. Las pruebas automáticas cubren reglas puras; no verifican que el modelo interprete correctamente la evidencia ni que el despliegue funcione.
+El corrector recibe hasta diez posts aprobados o publicados y sus correcciones como ejemplos. Queda pendiente ampliar las fuentes primarias admitidas y probar el comportamiento real del modelo. Las pruebas automáticas cubren reglas puras; no verifican que el modelo interprete correctamente la evidencia ni que el despliegue funcione.
 
 ## Guardado, aprobación y web: implementación sin activar
 

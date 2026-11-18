@@ -4,3 +4,9 @@ export function validarFondo(raw){
   if(!Number.isInteger(encuadre)||encuadre<0||encuadre>100||!Number.isInteger(oscurecimiento)||oscurecimiento<0||oscurecimiento>85)throw Error('Ajustes de imagen inválidos');
   return {imagen_privada:path,encuadre,oscurecimiento};
 }
+export function preservarFondo(raw,actual){
+  const result={...raw};
+  for(const key of ['imagen_privada','encuadre','oscurecimiento'])
+    if(!Object.prototype.hasOwnProperty.call(raw,key)&&actual[key]!==undefined)result[key]=actual[key];
+  return result;
+}

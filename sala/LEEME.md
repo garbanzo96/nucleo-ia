@@ -23,4 +23,4 @@ PYTHONPATH=agentes python3 agentes/ejecutar.py --ejemplo
 node --test sala/supabase/functions/tests/*.test.mjs
 ```
 
-La configuración futura está en `SETUP.md`. El estado detallado y las tareas pendientes están en `../../../LEEME_sala_y_marca.md`.
+La configuración futura está en `SETUP.md`. La foto y sus ajustes se guardan en el bucket privado cuando la sala está configurada; hace falta probarlo con Storage real. El estado detallado y las tareas pendientes están en `../../../LEEME_sala_y_marca.md`.
