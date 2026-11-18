@@ -2,7 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.49.8';
 
 export const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-ia-clave',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 export function reply(body: unknown, status = 200) {

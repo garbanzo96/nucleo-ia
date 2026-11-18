@@ -29,57 +29,62 @@ Desde aquí cualquier agente puede correr, en esta carpeta, `npx -y supabase@2.4
 
 ## 2. Usuario compartido de la sala
 
-1. En el panel de Supabase, Authentication → Users → Add user: un correo fijo (por ejemplo `sala@tu-dominio.cl`) y la contraseña compartida. En Authentication → Sign In / Providers desactiva el registro público.
-2. En SQL Editor, con el correo que elegiste:
+1. En el panel de Supabase, Authentication → Users → Add user → Create new user. Correo: `sala@nucleo-ia.cl` (es el que trae `conexion.js`; no necesita existir, no se le envía nada). Contraseña: la contraseña compartida. Marca Auto Confirm User.
+2. Authentication → Sign In / Providers: desactiva Allow new users to sign up.
+3. SQL Editor → New query:
 
    ```sql
    insert into public.miembros_sala(usuario)
-   select id from auth.users where email = 'sala@tu-dominio.cl';
+   select id from auth.users where email = 'sala@nucleo-ia.cl';
    ```
 
    Debe decir que agregó una fila.
-3. En la sala, la primera vez, completa la URL del proyecto, la clave pública `anon` (Project Settings → API), el correo fijo y tu nombre. La clave `anon` es pública por diseño; la `service_role` nunca va al navegador.
 
-## 3. Secretos de las funciones
+Los miembros solo abren el enlace de la sala y escriben su nombre y la contraseña. La URL y la clave pública del proyecto ya vienen en `conexion.js`; la clave `anon` es pública por diseño y sin la contraseña no da acceso a nada.
 
-Cada secreto se escribe sin que quede en el historial de la terminal: `read -rs` lo pide sin mostrarlo y el comando solo ve la variable.
+## 3. Quién paga qué
+
+La sala aporta el arnés: fuentes, prompts maestros, reglas, verificación y publicación. La IA la pone cada miembro con su propia cuenta (paso 5). Lo único común es la búsqueda semántica, que necesita un solo modelo de embeddings para que los vectores sean comparables: usa tu clave de Gemini en el nivel gratuito.
+
+## 4. Secretos de la infraestructura común
+
+Cada secreto se escribe sin que quede en el historial de la terminal: `read -rs` lo pide sin mostrarlo.
 
 ```sh
 read -rs V && npx -y supabase@2.40.7 secrets set GEMINI_API_KEY="$V"; unset V
+npx -y supabase@2.40.7 secrets set GEMINI_FREE_TIER_CONFIRMED=true
 read -rs V && npx -y supabase@2.40.7 secrets set GITHUB_DISPATCH_TOKEN="$V"; unset V
 read -rs V && npx -y supabase@2.40.7 secrets set GITHUB_PUBLICAR_TOKEN="$V"; unset V
 ```
 
-- `GEMINI_API_KEY`: de Google AI Studio, en un proyecto sin facturación.
-- Los dos tokens de GitHub son fine-grained (GitHub → Settings → Developer settings → Fine-grained tokens), solo para el repo `garbanzo96/nucleo-ia`. El de lanzamiento necesita permiso de Contents en lectura y escritura para `repository_dispatch`; el de publicación, Contents en lectura y escritura.
-- `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` las pone Supabase solo; no se cargan.
-
-Interruptores, que no son claves (actívalos solo cuando lo hayas probado):
-
-```sh
-npx -y supabase@2.40.7 secrets set GEMINI_FREE_TIER_CONFIRMED=true
-npx -y supabase@2.40.7 secrets set ENABLE_DRAFT_GENERATION=true
-npx -y supabase@2.40.7 secrets set ENABLE_WEB_PUBLICATION=true
-```
-
-Claude es opcional y requiere tu aprobación de presupuesto. Solo después carga `ANTHROPIC_API_KEY` con el mismo `read -rs` y `ALLOW_PAID_MODELS=true`.
-
-## 4. Secretos de GitHub Actions
+- `GEMINI_API_KEY`: de Google AI Studio, en un proyecto sin facturación. Solo calcula embeddings.
+- Los dos tokens de GitHub son fine-grained (GitHub → Settings → Developer settings → Fine-grained tokens), solo para `garbanzo96/nucleo-ia`, con permiso Contents en lectura y escritura. El primero permite lanzar la búsqueda de temas; el segundo, publicar notas en la web.
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` las pone Supabase solo.
 
 En github.com/garbanzo96/nucleo-ia → Settings → Secrets and variables → Actions:
 
-1. Pestaña Secrets, New repository secret: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API) y `GEMINI_API_KEY`. Si aprobaste Claude, también `ANTHROPIC_API_KEY`.
-2. Pestaña Variables: `GEMINI_FREE_TIER_CONFIRMED` con valor `true` cuando confirmes que la clave es gratuita. `ALLOW_PAID_MODELS` solo si aprobaste Claude.
+1. Secrets: `SUPABASE_URL` (`https://mntbswehkqcndbbmnwmn.supabase.co`), `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API Keys → service_role) y `GEMINI_API_KEY`.
+2. Variables: `GEMINI_FREE_TIER_CONFIRMED` = `true`.
 
-GitHub guarda los secretos cifrados y no los vuelve a mostrar. Nadie más tiene que verlos.
+La recolección de temas corre en GitHub Actions sin IA (gratis): lee las fuentes, busca la fuente primaria, quita duplicados y calcula embeddings. Corre sola todos los días y también cuando alguien aprieta «Buscar temas nuevos».
 
-## 5. Desplegar y probar
+## 5. Cada miembro: su IA
 
-1. Un agente (o tú) corre `npx -y supabase@2.40.7 db push` y luego `npx -y supabase@2.40.7 functions deploy`.
-2. Entra a la sala con la contraseña y prueba: un tema del radar, guardar un borrador, subir una imagen y descargar el ZIP.
-3. En Configuración, revisa que `cuenta_instagram` diga `"@nucleo.ia_"`.
-4. Lanza una investigación desde la sala y revisa la corrida en la pestaña Actions de GitHub.
-5. Activa `ENABLE_WEB_PUBLICATION` solo después de probar una publicación completa. La publicación en Instagram sigue apagada.
+En la sala, Configuración → Tu IA, cada persona pega su clave:
+
+- Claude: console.anthropic.com → API Keys. La suscripción de Claude no sirve; la API se paga aparte. Conviene fijar un tope mensual en Billing → Spend limits.
+- Gemini: aistudio.google.com → Get API key. Tiene nivel gratuito con límites.
+
+La clave queda solo en ese navegador (o solo en la pestaña, si no marca «Recordar»). Viaja a la sala únicamente al evaluar el radar o pedir un borrador, se usa para ese pedido y no se guarda ni se registra. Los modelos por tarea se ajustan en Configuración → Ajustes → `modelos`.
+
+Con la clave puesta: «Evaluar con mi IA» puntúa los temas nuevos del radar y propone ángulo y gancho; «Redactar» arma el borrador, lo corrige con la voz del Núcleo y lo verifica contra la fuente.
+
+## 5b. Probar
+
+1. Entra a la sala con la contraseña.
+2. «Buscar temas nuevos» y revisa la corrida en la pestaña Actions de GitHub.
+3. Pon tu clave y aprieta «Evaluar con mi IA». Elige un tema, redacta, guarda, sube una imagen y descarga el ZIP.
+4. Activa la publicación web solo después de probar una completa: `npx -y supabase@2.40.7 secrets set ENABLE_WEB_PUBLICATION=true`. Instagram sigue apagado.
 
 ## 6. Cambiar la contraseña
 

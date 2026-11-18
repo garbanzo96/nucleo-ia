@@ -31,9 +31,8 @@ alter table storage.objects enable row level security;
 grant usage on schema public, extensions, auth, storage to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
 grant all on storage.objects, storage.buckets to anon, authenticated, service_role;
-alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
-alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+-- Como en los proyectos nuevos de Supabase: sin grants de tabla por defecto; los da la migración 010.
 alter default privileges in schema extensions grant all on functions to anon, authenticated, service_role;
 `;
 
@@ -71,7 +70,7 @@ test('migraciones y políticas de la sala', {skip: !dir && 'Falta PGLITE_DIR'}, 
     }
     assert.equal((await como(db, 'anon', null, 'select public.es_miembro_sala() m')).rows[0].m, false);
     await falla(como(db, 'anon', null, `select public.nueva_version_prompt('redactar','x')`), /Acceso denegado/);
-    assert.equal((await como(db, 'anon', null, `select count(*)::int n from public.buscar_similares(array_fill(0.1::real, array[768])::extensions.vector)`)).rows[0].n, 0);
+    await falla(como(db, 'anon', null, `select count(*)::int n from public.buscar_similares(array_fill(0.1::real, array[768])::extensions.vector)`), /permission denied/);
   });
 
   await t.test('autenticado sin membresía no ve ni escribe', async () => {
