@@ -43,8 +43,9 @@ export async function huellaPost(p){return sha256(new TextEncoder().encode(JSON.
 export async function huellaFuente(f){return sha256(new TextEncoder().encode(JSON.stringify(f)))}
 export function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 export function paginaNota(post,fuente,slug){
-  if(!fuente.autores?.length||!/^\d{4}-\d\d-\d\d/.test(fuente.fecha||''))throw Error('Faltan autores o fecha de la fuente');
-  const referencia=`${fuente.autores.join(', ')}. ${fuente.titulo}. ${fuente.fecha.slice(0,4)}. ${fuente.origen||'arXiv'}. ${fuente.doi?'DOI: '+fuente.doi+'. ':''}${fuente.url}`;
+  // Un documento oficial puede no declarar fecha; se cita como «s. f.» en vez de inventarla.
+  if(!fuente.autores?.length||(!/^\d{4}-\d\d-\d\d/.test(fuente.fecha||'')&&fuente.tipo!=='oficial'))throw Error('Faltan autores o fecha de la fuente');
+  const referencia=`${fuente.autores.join(', ')}. ${fuente.titulo}. ${fuente.fecha?fuente.fecha.slice(0,4):'s. f.'}. ${fuente.origen||'arXiv'}. ${fuente.doi?'DOI: '+fuente.doi+'. ':''}${fuente.url}`;
   const slides=post.laminas.map((l,i)=>`<figure><img src="./lamina-${String(i+1).padStart(2,'0')}.jpg" alt="${esc(l.alt)}"><figcaption><h2>${esc(l.titulo)}</h2><p>${esc(l.cuerpo)}</p><small>${esc(l.fuente)}</small></figcaption></figure>`).join('');
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(post.laminas[0].titulo)} · Núcleo IA</title><meta name="description" content="${esc(post.descripcion.slice(0,160))}"><link rel="stylesheet" href="../../styles.css"><style>main{max-width:850px;margin:4rem auto;padding:0 1.5rem}figure{margin:2rem 0}figure img{max-width:540px}figcaption{padding:1rem 0}p{white-space:pre-wrap}small{color:#a8b5c7}</style></head><body><main><p><a href="../">Notas</a></p><h1>${esc(post.laminas[0].titulo)}</h1><p>${esc(post.descripcion)}</p>${slides}<h2>Fuente primaria</h2><p>${esc(referencia)}</p><p><a href="${esc(fuente.url)}">Leer la fuente ↗</a></p><p>Crédito de imagen: ${esc(post.credito_imagen)}</p></main></body></html>`;
 }

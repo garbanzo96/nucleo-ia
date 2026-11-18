@@ -27,14 +27,17 @@ class Ejecucion(unittest.TestCase):
 
     def test_academico_deduplica_doi_y_no_acepta_enlaces_caidos(self):
         db=DB(); works=[{'titulo':'Nuevo','doi':'10.1/nuevo'},{'titulo':'Ya visto','doi':'10.1/visto'},{'titulo':'Caído','doi':'10.1/caido'},{'titulo':'sin doi','doi':None}]
-        with patch('ejecutar.academico.buscar',return_value=works), patch('ejecutar.academico.buscar_semantic_scholar',return_value=works), patch('ejecutar.academico.buscar_crossref',return_value=[]), patch('ejecutar.academico.buscar_pubmed',return_value=[]), patch('ejecutar.academico.buscar_arxiv',return_value=[]), patch('ejecutar.radar.disponible',side_effect=lambda u:'caido' not in u):
+        with patch('ejecutar.academico.buscar',return_value=works), patch('ejecutar.academico.buscar_semantic_scholar',return_value=works), patch('ejecutar.academico.buscar_crossref',return_value=[]), patch('ejecutar.academico.buscar_pubmed',return_value=[]), patch('ejecutar.academico.buscar_arxiv',return_value=[]), patch('ejecutar.radar.disponible',side_effect=lambda u:'caido' not in u), patch('ejecutar.academico.texto_europepmc',return_value=(None,None,None)), patch('ejecutar.academico.abstract_semantic_scholar',return_value=None):
             count,total,failed=academicos(db,['IA'])
         self.assertEqual((count,total,failed),(1,1,0)); self.assertEqual(db.insertadas[0]['titulo'],'Nuevo')
+        self.assertEqual((db.insertadas[0]['hallazgo'],db.insertadas[0]['texto_fuente']),('no consta','sin texto accesible'))
 
     def test_catalogos_no_son_fuente_primaria(self):
         self.assertFalse(es_primaria('https://openalex.org/W123'))
         self.assertFalse(es_primaria('https://pubmed.ncbi.nlm.nih.gov/123'))
         self.assertTrue(es_primaria('https://doi.org/10.1/test'))
+        self.assertTrue(es_primaria('https://eur-lex.europa.eu/eli/reg/2024/1689/oj'))
+        self.assertFalse(es_primaria('https://bcn.cl.evil.com/ley'))
 
 if __name__=='__main__': unittest.main()
 

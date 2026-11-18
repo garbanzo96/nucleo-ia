@@ -1,7 +1,7 @@
 """Ejecuta radares y guarda resultados en Supabase. Nunca publica ni llama modelos pagados."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 import html
 import json
@@ -120,30 +120,41 @@ def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=(), clasif
     return len(output),len(selected),fallos
 
 
-def academicos(db, queries):
+def academicos(db, queries, expansion=(), ficha_modelo=None):
     existing=db.rows('papers','doi,url'); seen_doi={str(p['doi']).lower() for p in existing if p.get('doi')}; seen_url={p['url'] for p in existing if p.get('url')}; output=[]; fallos=0
+    works=list(expansion)
     for term in queries:
-        works=[]; consultado=False
+        consultado=False
         for search in (academico.buscar,academico.buscar_semantic_scholar,academico.buscar_crossref,academico.buscar_pubmed,academico.buscar_arxiv):
             try: works.extend(search(term)); consultado=True
             except (HTTPError,URLError,ValueError,TimeoutError,OSError,ParseError): continue
-        if not consultado: fallos+=1; continue
-        for work in works:
-            doi=(work.get('doi') or '').lower()
-            url = 'https://doi.org/' + doi if doi else work.get('url')
-            if not url or (doi and doi in seen_doi) or url in seen_url or not radar.disponible(url): continue
-            work['url'] = url
-            if work.get('url_abierta') and not radar.disponible(work['url_abierta']): work['url_abierta'] = None
-            if doi: seen_doi.add(doi)
-            seen_url.add(url)
-            try:
-                value = embeddings.vector(work['titulo'] + ' ' + (work.get('abstract') or ''))
-                if value is not None: work['embedding'] = value
-            except (HTTPError, URLError, ValueError, TimeoutError, OSError):
-                pass  # La ficha queda disponible para búsqueda textual.
-            output.append(work)
+        if not consultado: fallos+=1
+    for work in works:
+        doi=(work.get('doi') or '').lower()
+        url = 'https://doi.org/' + doi if doi else work.get('url')
+        if not url or (doi and doi in seen_doi) or url in seen_url or not radar.disponible(url): continue
+        work['url'] = url
+        if work.get('url_abierta') and not radar.disponible(work['url_abierta']): work['url_abierta'] = None
+        if doi: seen_doi.add(doi)
+        seen_url.add(url)
+        academico.completar_ficha(work, **(ficha_modelo or {}))
+        try:
+            value = embeddings.vector(work['titulo'] + ' ' + (work.get('abstract') or ''))
+            if value is not None: work['embedding'] = value
+        except (HTTPError, URLError, ValueError, TimeoutError, OSError):
+            pass  # La ficha queda disponible para búsqueda textual.
+        output.append(work)
     for start in range(0,len(output),100): db.insert('papers',output[start:start+100],True)
     return len(output),len(queries),fallos
+
+
+def expansion_guardada(db):
+    """Autores, venues y temas de lo que la sala guardó, usó o publicó; si OpenAlex falla, la corrida sigue."""
+    urls=[c.get('fuente_primaria') for c in db.rows('candidatos','fuente_primaria,estado') if c.get('estado') in ('guardado','usado')]
+    urls+=[p.get('fuente_primaria') for p in db.rows('posts','fuente_primaria')]
+    desde=(datetime.now(timezone.utc)-timedelta(days=180)).date().isoformat()
+    try: return academico.expandir_consultas([academico.doi_de(u) for u in urls if u],desde)
+    except (HTTPError,URLError,ValueError,TimeoutError,OSError): return []
 
 
 def indexar_pendientes(db, limite=40):
@@ -193,9 +204,12 @@ def run(tipo, job_id=None, limite=0):
             conf={r['clave']:r['valor'] for r in db.rows('config','clave,valor')}; queries=conf.get('consultas_academicas',[])
             if not isinstance(queries,list) or not all(isinstance(q,str) for q in queries): raise RuntimeError('Las consultas académicas no tienen un formato válido.')
             if limite: queries=queries[:limite]
-            count,total,failed=academicos(db,queries)
+            filtro=conf.get('modelos',{}).get('filtrar'); prompt=next((p['contenido'] for p in db.rows('prompts','agente,contenido,activa') if p.get('agente')=='radar_academico' and p.get('activa')),None)
+            ficha_modelo={'modelo':filtro,'prompt':prompt,'generar':clasificar.generar} if isinstance(filtro,dict) and prompt else None
+            expansion=expansion_guardada(db)
+            count,total,failed=academicos(db,queries,expansion,ficha_modelo)
             if total and failed==total: raise RuntimeError('No se pudo consultar OpenAlex.')
-            detalle.append(f'Académico: {count} papers nuevos; {failed} de {total} consultas fallaron.')
+            detalle.append(f'Académico: {count} papers nuevos ({len(expansion)} propuestos por autores, venues y temas guardados); {failed} de {total} consultas fallaron.')
         if os.environ.get('GEMINI_FREE_TIER_CONFIRMED') == 'true' and os.environ.get('GEMINI_API_KEY'):
             detalle.append(f'Indexación semántica: {indexar_pendientes(db)} pendientes completados.')
         db.update('trabajos',job_id,{'estado':'completado','detalle':' '.join(detalle),'terminado_en':datetime.now(timezone.utc).isoformat()})

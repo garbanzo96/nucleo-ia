@@ -87,7 +87,8 @@ insert into public.prompts(agente,version,activa,contenido) values
 create function public.buscar_similares(consulta_vector extensions.vector(768))
 returns table(tipo text, id uuid, titulo text, url text, similitud double precision)
 language sql stable security invoker set search_path = '' as $$
-  select 'candidato'::text, c.id, c.titulo, c.url, 1 - (c.embedding operator(extensions.<=>) consulta_vector)
+  -- El alias es obligatorio: el ORDER BY de un UNION solo ve los nombres de la primera consulta.
+  select 'candidato'::text as tipo, c.id, c.titulo, c.url, 1 - (c.embedding operator(extensions.<=>) consulta_vector) as similitud
   from public.candidatos c where c.embedding is not null and c.estado = 'guardado'
   union all
   select 'paper'::text, p.id, p.titulo, p.url, 1 - (p.embedding operator(extensions.<=>) consulta_vector)

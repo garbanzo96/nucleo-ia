@@ -69,8 +69,9 @@ test('quitar imagen después de aprobar invalida la publicación',async()=>{
 });
 
 test('expandir muestra referencias y citas de forma segura',async()=>{
- const {w,rows,calls}=setup(),d=w.document;rows.papers=[{id:'papera',titulo:'Paper',doi:'10.1234/test',abstract:'Resumen',ficha_basada_en_abstract:true}];
+ const {w,rows,calls}=setup(),d=w.document;rows.papers=[{id:'papera',titulo:'Paper',doi:'10.1234/test',abstract:'Resumen',ficha_basada_en_abstract:true,hallazgo:'no consta',pregunta:'¿Sirve?',citas:{pregunta:'¿Sirve?'},texto_fuente:'resumen'}];
  await w.__test.load();const box=d.getElementById('resultados-biblioteca'),button=box.querySelector('[data-expandir]');assert(button);
+ assert.match(box.querySelector('details').textContent,/Pregunta¿Sirve\?/);assert.match(box.querySelector('details').textContent,/Hallazgono consta/);assert.match(box.textContent,/Ficha desde resumen/);
  await box.onclick({target:button});const call=calls.find(x=>x.name==='expandir');assert.equal(call.body.identificador,'10.1234/test');
  assert.match(box.textContent,/Referencia/);assert.match(box.textContent,/Trabajo posterior/);assert.equal(box.querySelector('script'),null);
 });

@@ -481,7 +481,8 @@
     "nombre": "AI Incident Database",
     "url": "https://incidentdatabase.ai/",
     "tipo": "datos",
-    "rol": "primaria"
+    "rol": "primaria",
+    "feed": "https://incidentdatabase.ai/rss.xml"
   },
   {
     "id": "owid-ai",
@@ -600,7 +601,8 @@
     "nombre": "AlgorithmWatch",
     "url": "https://algorithmwatch.org/en/",
     "tipo": "ong",
-    "rol": "secundaria"
+    "rol": "secundaria",
+    "feed": "https://algorithmwatch.org/en/feed/"
   },
   {
     "id": "r-artificial",
@@ -705,7 +707,7 @@
   {
     "id": "ilia",
     "nombre": "ILIA (CEPAL y CENIA)",
-    "url": "https://www.cepal.org/es/publicaciones/90413-indice-latinoamericano-inteligencia-artificial-ilia-2026",
+    "url": "https://indicelatam.cl/",
     "tipo": "informe",
     "rol": "primaria"
   },
@@ -1126,7 +1128,7 @@
   {
     "id": "aiaaic",
     "nombre": "AIAAIC",
-    "url": "https://aiaaic.org",
+    "url": "https://www.aiaaic.org/",
     "tipo": "institucion",
     "rol": "primaria"
   },
@@ -1141,13 +1143,6 @@
     "id": "iapp",
     "nombre": "IAPP",
     "url": "https://iapp.org",
-    "tipo": "institucion",
-    "rol": "primaria"
-  },
-  {
-    "id": "uniandes",
-    "nombre": "Sistemas Algorítmicos Públicos",
-    "url": "https://sistemasalgoritmicos.uniandes.edu.co",
     "tipo": "institucion",
     "rol": "primaria"
   },
@@ -1253,6 +1248,14 @@
     "url": "https://arxiv.org/list/cs.RO/recent",
     "feed": "https://export.arxiv.org/api/query?search_query=cat:cs.RO&start=0&max_results=8&sortBy=submittedDate&sortOrder=descending",
     "tipo": "academica",
+    "rol": "primaria"
+  },
+  {
+    "id": "global-index-responsible-ai",
+    "nombre": "Global Index on Responsible AI",
+    "url": "https://www.global-index.ai/",
+    "feed": null,
+    "tipo": "observatorio",
     "rol": "primaria"
   }
 ]

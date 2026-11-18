@@ -1,9 +1,12 @@
 """Reglas compartidas de los radares y la sala."""
 from html.parser import HTMLParser
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+import json
 import re
+from pathlib import Path
 
-PRIMARY_DOMAINS = {'doi.org', 'arxiv.org', 'bcn.cl', 'diariooficial.interior.gob.cl', 'senado.cl', 'nist.gov', 'oecd.org', 'unesco.org', 'cepal.org', 'europa.eu', 'ec.europa.eu', 'gov.uk', 'govinfo.gov'}
+# La lista blanca vive junto a las funciones Edge para que sala y radares usen la misma.
+PRIMARY_DOMAINS = set(json.loads((Path(__file__).resolve().parents[1] / 'sala/supabase/functions/_shared/primarias.json').read_text()))
 
 def canonical_url(url):
     parts = urlsplit(url.strip())
