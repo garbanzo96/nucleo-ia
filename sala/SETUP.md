@@ -77,7 +77,7 @@ GitHub guarda los secretos cifrados y no los vuelve a mostrar. Nadie más tiene 
 
 1. Un agente (o tú) corre `npx -y supabase@2.40.7 db push` y luego `npx -y supabase@2.40.7 functions deploy`.
 2. Entra a la sala con la contraseña y prueba: un tema del radar, guardar un borrador, subir una imagen y descargar el ZIP.
-3. En Configuración, deja `cuenta_instagram` como `"@cuenta"`.
+3. En Configuración, revisa que `cuenta_instagram` diga `"@nucleo.ia_"`.
 4. Lanza una investigación desde la sala y revisa la corrida en la pestaña Actions de GitHub.
 5. Activa `ENABLE_WEB_PUBLICATION` solo después de probar una publicación completa. La publicación en Instagram sigue apagada.
 

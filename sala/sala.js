@@ -11,8 +11,10 @@ function notify(text){ $('notice').textContent=text; }
 function tab(name){ document.querySelectorAll('.page').forEach(e=>e.hidden=e.id!==name); document.querySelectorAll('nav button').forEach(e=>e.classList.toggle('active',e.dataset.tab===name)); if(name==='editor') updatePreview(); }
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
 const form=$('login-form'), stored=JSON.parse(localStorage.getItem('nucleo-sala-conexion')||'{}');
-for(const k of ['url','anon','email','nombre']) form.elements[k].value=stored[k]||'';
-if(!stored.url) form.querySelector('details').open=true;
+// conexion.js trae la URL, la clave pública y el correo de la sala: así los miembros solo escriben nombre y contraseña.
+const fijo=window.SALA_CONEXION||{};
+for(const k of ['url','anon','email','nombre']) form.elements[k].value=fijo[k]||stored[k]||'';
+if(fijo.url&&fijo.anon&&fijo.email) form.querySelector('details').hidden=true; else if(!stored.url) form.querySelector('details').open=true;
 form.addEventListener('submit',async e=>{e.preventDefault(); $('login-error').textContent=''; const values=Object.fromEntries(new FormData(form));
  try{const u=new URL(values.url); if(u.protocol!=='https:' || !u.hostname.endsWith('.supabase.co') || u.username || u.password || u.port || u.pathname !== '/') throw Error('Usa la URL HTTPS del proyecto en supabase.co, sin ruta.');
  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/+esm'); db=createClient(values.url,values.anon); const {error}=await db.auth.signInWithPassword({email:values.email,password:values.password}); if(error) throw error;
@@ -126,7 +128,7 @@ if (['localhost','127.0.0.1'].includes(location.hostname) && new URLSearchParams
   const noDisponible={message:'La demostración no guarda datos ni llama servicios.'};
   db={functions:{invoke:async()=>({error:noDisponible})},rpc:async()=>({error:noDisponible}),from:()=>({select:async()=>({data:[],error:noDisponible}),update:()=>({eq:async()=>({error:noDisponible})})}),auth:{signOut:async()=>{}}};
   usuario='Demostración local';candidatos=[{id:'ejemplo',titulo:'Ejemplo ficticio: un estudio sobre IA',resumen:'Este tema solo sirve para revisar la interfaz.',estado:'nuevo',puntaje:null,angulo:'Ejemplo de un ángulo editorial.'}];
-  config=[{clave:'formatos',valor:['noticia explicada','paper en simple']},{clave:'cuenta_instagram',valor:null}];prompts=[];posts=[];papers=[];
+  config=[{clave:'formatos',valor:['noticia explicada','paper en simple']},{clave:'cuenta_instagram',valor:'@nucleo.ia_'}];prompts=[];posts=[];papers=[];
   post=blankPost();post.laminas=Array.from({length:6},(_,i)=>({titulo:i?'Una idea por lámina':'¿Qué significa que una IA tome decisiones?',cuerpo:'Contenido ficticio para revisar la presentación.',fuente:'Fuente de ejemplo',alt:'Lámina de ejemplo'}));
   $('login').hidden=true;$('app').hidden=false;$('usuario').textContent=usuario;
   const banner=document.createElement('p');banner.textContent='Demostración local · datos ficticios · no guarda ni publica';banner.className='demo-banner';$('app').prepend(banner);

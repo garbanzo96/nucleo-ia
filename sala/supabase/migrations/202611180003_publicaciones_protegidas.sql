@@ -42,4 +42,4 @@ revoke all on function public.soltar_publicacion(uuid,boolean,text) from public,
 grant execute on function public.tomar_publicacion(uuid,integer) to service_role;
 grant execute on function public.soltar_publicacion(uuid,boolean,text) to service_role;
 -- La cuenta la completa Gabriel; null mantiene bloqueada la aprobación.
-insert into public.config(clave,valor) values ('cuenta_instagram','null'::jsonb) on conflict (clave) do nothing;
+insert into public.config(clave,valor) values ('cuenta_instagram','"@nucleo.ia_"'::jsonb) on conflict (clave) do nothing;
