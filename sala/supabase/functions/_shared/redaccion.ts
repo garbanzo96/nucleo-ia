@@ -22,14 +22,27 @@ async function rotacionLibre(db: any, formato: string, gancho: string) {
   return { f, g };
 }
 
+// Muchos medios bloquean la lectura automática (openai.com, Reuters, NYT): se prueban en paralelo la fuente
+// y las otras notas del mismo hecho, y gana la primera legible en el orden dado.
+export async function primeraLegible(lista: unknown[], cargar: (u: string) => Promise<any> = cargarFuente) {
+  const urls = [...new Set(lista.filter((u): u is string => typeof u === 'string' && u.startsWith('https://') && u.length <= 500))].slice(0, 6);
+  if (!urls.length) throw new Error('Falta la fuente');
+  const r = await Promise.allSettled(urls.map(async u => exigirTexto(await cargar(u))));
+  const i = r.findIndex(x => x.status === 'fulfilled');
+  if (i >= 0) return { fuente: (r[i] as PromiseFulfilledResult<any>).value, url: urls[i] };
+  const motivo = (x: PromiseSettledResult<unknown>) => (x as PromiseRejectedResult).reason?.message || 'error';
+  if (urls.length === 1) throw new Error(motivo(r[0]));
+  throw new Error(`Ninguno de los ${urls.length} enlaces de esta historia se pudo leer (${r.map(motivo).join('; ')}). Pega otro enlace de la misma noticia.`);
+}
+
 export async function preparar(db: any, body: any) {
   if (typeof body.fuente_primaria !== 'string' || body.fuente_primaria.length > 500) throw new Error('Falta la fuente');
   const { f, g } = await rotacionLibre(db, corto(body.formato, 80), corto(body.tipo_gancho, 80));
   const ctx = await contexto(db, f, g);
-  const fuente = exigirTexto(await cargarFuente(body.fuente_primaria));
+  const { fuente, url } = await primeraLegible([body.fuente_primaria, ...(Array.isArray(body.alternativas) ? body.alternativas : [])]);
   const t = body.tema && typeof body.tema === 'object' ? body.tema : {};
   const tema = { resumen: corto(t.resumen, 1500), angulo: corto(t.angulo, 500), gancho: corto(t.gancho, 300) };
-  return { ctx, fuente, formato: f, gancho: g, tema };
+  return { ctx, fuente, url, formato: f, gancho: g, tema };
 }
 type Prep = Awaited<ReturnType<typeof preparar>>;
 // La fecha de la fuente cuenta como evidencia: "Stanford, 2026" en el campo fuente no es una cifra inventada.
@@ -101,7 +114,7 @@ export function cerrar(p: Prep, borrador: any, informe: any) {
   const alertas = laminas.map((x: any, i: number) => x?.respaldada === true ? null : `Lámina ${i + 1}: ${corto(x?.explicacion, 300) || 'revisar contra la fuente'}`).filter(Boolean);
   if (informe?.descripcion_respaldada === false) alertas.push('Descripción: revisar contra la fuente');
   const alcance = p.fuente.tipo === 'prensa' ? 'nota de prensa: si menciona un estudio o una ley, busca y cita ese original' : p.fuente.tipo === 'oficial' ? 'texto de la página' : 'resumen';
-  return { borrador, formato: p.formato, tipo_gancho: p.gancho, fuente: { ...p.fuente, alcance }, revision: informe, alertas, estado: 'borrador',
+  return { borrador, formato: p.formato, tipo_gancho: p.gancho, fuente_primaria: p.url, fuente: { ...p.fuente, alcance }, revision: informe, alertas, estado: 'borrador',
     advertencia: alertas.length ? `La verificación marcó ${alertas.length} punto(s) para revisar.` : 'La verificación no encontró problemas, pero una persona debe leer la fuente antes de aprobar.' };
 }
 
@@ -125,5 +138,5 @@ export async function redactarCompleto(p: Prep, correr: (paso: Paso) => Promise<
 }
 
 // Errores que se pueden mostrar tal cual: no contienen claves ni datos internos.
-export const erroresVisibles = ['Falta la fuente', 'Falta configurar la IA', 'La clave de IA', 'La cuenta de IA', 'Tu clave de IA', 'El proveedor de IA', 'Falta configurar el modelo', 'Solo se admiten enlaces', 'El enlace debe apuntar', 'Hay publicaciones sin fecha', 'Falta aplicar la migración', 'El borrador', 'No se pudo comprobar', 'La fuente es un PDF', 'La fuente oficial', 'Destino de red', 'Tipo de contenido', 'Demasiadas redirecciones', 'El modelo no entregó', 'Lote inválido', 'No se pudo leer el radar', 'Enlace de fuente inválido', 'Redirección sin destino'];
+export const erroresVisibles = ['Falta la fuente', 'Falta configurar la IA', 'La clave de IA', 'La cuenta de IA', 'Tu clave de IA', 'El proveedor de IA', 'Falta configurar el modelo', 'Solo se admiten enlaces', 'El enlace debe apuntar', 'Hay publicaciones sin fecha', 'Falta aplicar la migración', 'El borrador', 'No se pudo comprobar', 'La fuente es un PDF', 'La fuente', 'Ninguno de los', 'Destino de red', 'Tipo de contenido', 'Demasiadas redirecciones', 'El modelo no entregó', 'Lote inválido', 'No se pudo leer el radar', 'Enlace de fuente inválido', 'Redirección sin destino'];
 export const mensajeVisible = (err: unknown, otro: string) => { const m = err instanceof Error ? err.message : ''; return erroresVisibles.some(s => m.startsWith(s)) ? m : otro; };

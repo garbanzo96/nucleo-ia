@@ -15,9 +15,11 @@ Deno.serve(async req => {
       body: JSON.stringify({ event_type: 'investigar', client_payload: { tipo: body.tipo, trabajo_id: job.data.id } }),
     });
     if (!response.ok) {
-      await db.from('trabajos').update({ estado: 'error', detalle: 'GitHub no aceptó la solicitud', terminado_en: new Date().toISOString() }).eq('id', job.data.id);
-      return reply({ error: 'GitHub no aceptó la solicitud' }, 502);
+      const detalle = `GitHub no aceptó la solicitud (HTTP ${response.status})${[401, 403, 404].includes(response.status) ? ': el token de lanzamiento venció o no tiene permiso Contents de escritura en garbanzo96/nucleo-ia' : ''}`;
+      await response.body?.cancel();
+      await db.from('trabajos').update({ estado: 'error', detalle, terminado_en: new Date().toISOString() }).eq('id', job.data.id);
+      return reply({ error: detalle }, 502);
     }
     return reply({ id: job.data.id });
-  } catch { return reply({ error: 'No se pudo lanzar la investigación o no hay acceso' }, 403); }
+  } catch (e) { return reply({ error: e instanceof Error && e.message.startsWith('Sin ') ? e.message : 'No se pudo lanzar la investigación o no hay acceso' }, 403); }
 });

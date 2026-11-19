@@ -68,7 +68,11 @@ export async function leerOficial(url, {fetcher = fetch, resolver = resolverDns,
       if (!destino) throw Error('Redirección sin destino');
       url = new URL(destino, u).href; continue;
     }
-    if (!r.ok || !r.body) throw Error('La fuente oficial no respondió');
+    if (!r.ok || !r.body) {
+      await r.body?.cancel();
+      const host = u.hostname.replace(/^www\./, '');
+      throw Error(`La fuente no respondió: ${host} devolvió HTTP ${r.status}${[401, 403, 429].includes(r.status) ? ', bloquea la lectura automática' : ''}`);
+    }
     const [tipo, ...params] = (r.headers.get('content-type') || '').toLowerCase().split(';').map(s => s.trim());
     if (!TIPOS.includes(tipo)) { await r.body.cancel(); throw Error('Tipo de contenido no admitido') }
     if (tipo === 'application/pdf') { await r.body.cancel(); return {url: u.href, dominio, tipo, bytes: null} }
