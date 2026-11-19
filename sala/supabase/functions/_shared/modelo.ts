@@ -12,7 +12,7 @@ export async function generar(ia: IA, modelo: string, instruccion: string, datos
     const pedir = (m: string) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
       method: 'POST', signal: AbortSignal.timeout(60000),
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': ia.clave },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: instruccion }] }, contents: [{ role: 'user', parts: [{ text: datos }] }], generationConfig: { responseMimeType: 'application/json' } }),
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: instruccion }] }, contents: [{ role: 'user', parts: [{ text: datos }] }], generationConfig: { responseMimeType: 'application/json', ...(/^gemini-3/.test(m) && !m.includes('lite') ? { thinkingConfig: { thinkingLevel: 'low' } } : {}) } }),
     }).catch(() => null);
     let res = await pedir(modelo);
     if ((!res || res.status === 503 || res.status === 429) && modelo !== GEMINI_RESPALDO) res = await pedir(GEMINI_RESPALDO);

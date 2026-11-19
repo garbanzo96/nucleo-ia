@@ -32,7 +32,8 @@ export async function preparar(db: any, body: any) {
   return { ctx, fuente, formato: f, gancho: g, tema };
 }
 type Prep = Awaited<ReturnType<typeof preparar>>;
-const evidencia = (p: Prep) => p.fuente.titulo + ' ' + p.fuente.resumen;
+// La fecha de la fuente cuenta como evidencia: "Stanford, 2026" en el campo fuente no es una cifra inventada.
+const evidencia = (p: Prep) => [p.fuente.titulo, p.fuente.resumen, (p.fuente as any).fecha || '', (p.fuente as any).anio || ''].join(' ');
 
 export function pasoBorrador({ ctx, fuente, formato, gancho, tema }: Prep): Paso {
   const esquema = { laminas: [{ titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: '', texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', busqueda: '', prompt_ia: '' } };
@@ -44,6 +45,31 @@ export function pasoBorrador({ ctx, fuente, formato, gancho, tema }: Prep): Paso
       lista_negra: ctx.config.lista_negra, ejemplos_de_voz: ctx.ejemplos, esquema,
     },
   };
+}
+
+// Algunos modelos envuelven la respuesta ({"borrador": {...}}): se desenvuelve antes de validar.
+export function normalizar(r: any) {
+  if (r && typeof r === 'object' && !Array.isArray(r.laminas)) { const v = Object.values(r).find((x: any) => x && typeof x === 'object' && Array.isArray(x.laminas)); if (v) return v; }
+  return r;
+}
+
+// Paso del gancho: 6 alternativas de tipos distintos y la mejor queda en la lámina 1.
+export function pasoGanchos(p: Prep, borrador: any): Paso | null {
+  if (!p.ctx.prompts.ganchos || !Array.isArray(borrador?.laminas)) return null;
+  return {
+    sistema: instrucciones(p.ctx.prompts.ganchos + '\n\n' + politica),
+    datos: { fuente: p.fuente, tipo_pedido: p.gancho, tipos: tiposGancho, usados_hace_poco: p.ctx.anteriores.map((x: any) => x.tipo_gancho), borrador: { laminas: borrador.laminas } },
+  };
+}
+export function aplicarGanchos(p: Prep, borrador: any, r: any) {
+  const recientes = new Set(p.ctx.anteriores.map((x: any) => x.tipo_gancho));
+  const lista = (Array.isArray(r?.ganchos) ? r.ganchos : []).filter((g: any) => g && tiposGancho.includes(g.tipo) && !recientes.has(g.tipo) && typeof g.texto === 'string' && g.texto.trim());
+  if (!lista.length || !Array.isArray(borrador?.laminas) || !borrador.laminas.length) return borrador;
+  const mejor = lista[Number.isInteger(r.mejor) && r.ganchos[r.mejor] && lista.includes(r.ganchos[r.mejor]) ? lista.indexOf(r.ganchos[r.mejor]) : 0];
+  const orden = [mejor, ...lista.filter((g: any) => g.tipo === p.gancho), ...lista];
+  const ganchos: any[] = []; for (const g of orden) if (!ganchos.some(x => x.tipo === g.tipo)) ganchos.push({ tipo: g.tipo, texto: g.texto.trim() });
+  if (ganchos.length < 3) return borrador; // mejor conservar los del borrador que quedar bajo el mínimo
+  return { ...borrador, laminas: [{ ...borrador.laminas[0], titulo: mejor.texto.trim() }, ...borrador.laminas.slice(1)], ganchos: ganchos.slice(0, 5) };
 }
 
 export function problemas(p: Prep, borrador: unknown): string[] {
@@ -76,15 +102,22 @@ export function cerrar(p: Prep, borrador: any, informe: any) {
 }
 
 // Corre el arnés completo con una función que llama a la IA y devuelve JSON.
-export async function redactarCompleto(p: Prep, correr: (paso: Paso) => Promise<any>, verificador: (paso: Paso) => Promise<any> = correr) {
-  let borrador = await correr(pasoBorrador(p));
+export async function redactarCompleto(p: Prep, correr: (paso: Paso) => Promise<any>, verificador: (paso: Paso) => Promise<any> = correr, ganchador: (paso: Paso) => Promise<any> = correr) {
+  // Una respuesta mal formada se pide de nuevo una vez antes de rendirse.
+  const llamar = async (f: (paso: Paso) => Promise<any>, paso: Paso) => {
+    try { return normalizar(await f(paso)); }
+    catch (e) { if (e instanceof Error && e.message.startsWith('El modelo no entregó')) return normalizar(await f(paso)); throw e; }
+  };
+  let borrador = await llamar(correr, pasoBorrador(p));
+  const pg = pasoGanchos(p, borrador);
+  if (pg) { try { borrador = aplicarGanchos(p, borrador, await llamar(ganchador, pg)); } catch { /* el borrador sigue con sus propios ganchos */ } }
   for (let i = 0; ; i++) {
     const lista = problemas(p, borrador);
     if (!lista.length) break;
     if (i === MAX_CORRECCIONES) throw new Error('El borrador no cumplió las reglas después de dos correcciones: ' + lista.slice(0, 3).join('; '));
-    borrador = await correr(pasoCorregir(p, borrador, lista));
+    borrador = await llamar(correr, pasoCorregir(p, borrador, lista));
   }
-  return cerrar(p, borrador, await verificador(pasoVerificar(p, borrador)));
+  return cerrar(p, borrador, await llamar(verificador, pasoVerificar(p, borrador)));
 }
 
 // Errores que se pueden mostrar tal cual: no contienen claves ni datos internos.

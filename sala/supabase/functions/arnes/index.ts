@@ -1,7 +1,7 @@
 import { cors, miembro, reply } from '../_shared/auth.ts';
 import { parseJson, tiposGancho } from '../_shared/editorial.mjs';
 import { lotes, guardar } from '../_shared/evaluacion.ts';
-import { preparar, pasoBorrador, pasoCorregir, pasoVerificar, problemas, cerrar, mensajeVisible } from '../_shared/redaccion.ts';
+import { preparar, pasoBorrador, pasoCorregir, pasoVerificar, pasoGanchos, aplicarGanchos, normalizar, problemas, cerrar, mensajeVisible } from '../_shared/redaccion.ts';
 
 // Modo CLI: la sala entrega cada paso (instrucciones de sistema + datos) y valida lo que vuelve;
 // el modelo corre en el computador del miembro (Claude Code o Codex con su suscripción).
@@ -29,6 +29,8 @@ Deno.serve(async req => {
       // luego "verificar" y "cerrar". Cada paso se recalcula aquí: el cliente no puede saltarse las reglas.
       const prep = await preparar(db, b);
       if (b.paso === 'borrador') return reply({ paso: pasoBorrador(prep), formato: prep.formato, tipo_gancho: prep.gancho });
+      if (b.paso === 'ganchos') return reply({ paso: pasoGanchos(prep, normalizar(texto(b.borrador))) });
+      if (b.paso === 'aplicar_ganchos') return reply({ borrador: aplicarGanchos(prep, normalizar(texto(b.borrador)), texto(b.respuesta)) });
       if (b.paso === 'revisar') { const bo = texto(b.borrador), l = problemas(prep, bo); return reply({ problemas: l, paso: l.length ? pasoCorregir(prep, bo, l) : null }); }
       if (b.paso === 'verificar') { const bo = texto(b.borrador); if (problemas(prep, bo).length) throw new Error('El borrador todavía no cumple las reglas'); return reply({ paso: pasoVerificar(prep, bo) }); }
       if (b.paso === 'cerrar') { const bo = texto(b.borrador); if (problemas(prep, bo).length) throw new Error('El borrador todavía no cumple las reglas'); return reply(cerrar(prep, bo, texto(b.informe))); }

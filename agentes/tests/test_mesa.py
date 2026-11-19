@@ -57,5 +57,12 @@ class MesaTest(unittest.TestCase):
         self.assertEqual(db.tablas['historias'], [])
 
 
+    def test_filtro_de_ia(self):
+        self.assertTrue(ejecutar.trata_de_ia('Senado aprueba ley de inteligencia artificial'))
+        self.assertTrue(ejecutar.trata_de_ia('OpenAI firma acuerdo con el Ministerio'))
+        self.assertTrue(ejecutar.trata_de_ia('La IA en las aulas chilenas'))
+        self.assertFalse(ejecutar.trata_de_ia('Dólar sobre los $1.000 preocupa a exportadores'))
+        self.assertFalse(ejecutar.trata_de_ia('Hidratación: claves para el verano'))  # "IA" dentro de palabra no cuenta
+
 if __name__ == '__main__':
     unittest.main()

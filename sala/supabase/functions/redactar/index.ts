@@ -11,7 +11,7 @@ Deno.serve(async req=>{
     const ia=iaDelPedido(req.headers, Deno.env.get('GEMINI_API_KEY'));
     const prep=await preparar(db,await req.json()), modelos=modelosDe(prep.ctx.config,ia);
     const con=(m:string)=>(p:{sistema:string,datos:unknown})=>modeloJson(ia,m,p.sistema,p.datos);
-    return reply(await redactarCompleto(prep,con(modelos.redactar),con(modelos.verificar)));
+    return reply(await redactarCompleto(prep,con(modelos.redactar),con(modelos.verificar),con(modelos.ganchos)));
   }catch(err){
     return reply({error:mensajeVisible(err,'No se pudo generar el borrador. Revisa la configuración y la fuente.')},422);
   }

@@ -59,7 +59,19 @@ def recoger_fuente(fuente):
         domain=urlsplit(fuente.get('url','')).hostname
         if not domain: return []
         feed='https://news.google.com/rss/search?'+urlencode({'q':f'site:{domain} ("inteligencia artificial" OR "artificial intelligence")','hl':'es-419','gl':'CL','ceid':'CL:es-419'})
-    return [{**item,'fuente_id':fuente['id'],'resumen':texto(item.get('resumen'))} for item in radar.recolectar(feed)]
+    items=[{**item,'fuente_id':fuente['id'],'resumen':texto(item.get('resumen'))} for item in radar.recolectar(feed)]
+    # Como el Radar de la Fundación: de las fuentes generales solo entra lo que trata de IA.
+    if fuente.get('feed') and fuente.get('tipo') not in ESPECIALIZADAS:
+        items=[i for i in items if trata_de_ia((i.get('titulo') or '')+' '+(i.get('resumen') or ''))]
+    return items
+
+
+ESPECIALIZADAS={'laboratorio','repositorio','observatorio','newsletter','academica','centro-investigacion','datos'}
+_IA=re.compile(r"\b(IA|AI|A\.I\.|LLMs?|GPT[-\w]*)\b|inteligencia artificial|artificial intelligence|machine learning|aprendizaje (autom[aá]tico|profundo)|deep learning|algoritm|chatbot|chatgpt|openai|anthropic|claude|gemini|copilot|deepseek|mistral|modelos? de lenguaje|language models?|deepfake|robot|automatizaci|reconocimiento facial|facial recognition|redes neuronales|neural net|generativ",re.I)
+
+
+def trata_de_ia(texto_nota):
+    return bool(_IA.search(texto_nota or ''))
 
 
 def analizar_noticia(item, fuente):

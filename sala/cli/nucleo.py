@@ -157,6 +157,11 @@ def redactar(sala, ia, modelo, tema, formato, gancho):
     base.update(formato=inicio['formato'], tipo_gancho=inicio['tipo_gancho'])  # la sala puede cambiarlos por rotación
     print(f"Borrador ({base['formato']}, gancho: {base['tipo_gancho']}) con {ia}…", flush=True)
     borrador = correr_ia(ia, modelo, inicio['paso'])
+    paso_ganchos = sala.funcion('arnes', {**base, 'paso': 'ganchos', 'borrador': borrador})['paso']
+    if paso_ganchos:
+        print('Buscando el mejor gancho…', flush=True)
+        respuesta = correr_ia(ia, modelo, paso_ganchos)
+        borrador = json.dumps(sala.funcion('arnes', {**base, 'paso': 'aplicar_ganchos', 'borrador': borrador, 'respuesta': respuesta})['borrador'], ensure_ascii=False)
     for intento in range(3):
         revision = sala.funcion('arnes', {**base, 'paso': 'revisar', 'borrador': borrador})
         if not revision['paso']:
