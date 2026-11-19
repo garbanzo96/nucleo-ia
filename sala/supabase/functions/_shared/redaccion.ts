@@ -35,8 +35,10 @@ type Prep = Awaited<ReturnType<typeof preparar>>;
 // La fecha de la fuente cuenta como evidencia: "Stanford, 2026" en el campo fuente no es una cifra inventada.
 const evidencia = (p: Prep) => [p.fuente.titulo, p.fuente.resumen, (p.fuente as any).fecha || '', (p.fuente as any).anio || ''].join(' ');
 
+export const ESQUEMA = { laminas: [{ tipo: 'gancho | hecho | contexto | dato | cita | implicancias | reflexion | limites | pregunta', titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: tiposGancho.join(' | '), texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', busqueda: '', prompt_ia: '' } };
+
 export function pasoBorrador({ ctx, fuente, formato, gancho, tema }: Prep): Paso {
-  const esquema = { laminas: [{ tipo: 'gancho | hecho | contexto | dato | cita | implicancias | reflexion | limites | pregunta', titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: '', texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', busqueda: '', prompt_ia: '' } };
+  const esquema = ESQUEMA;
   return {
     sistema: instrucciones(ctx.prompts.redactar + '\n\n' + ctx.prompts.voz + '\n\n' + politica),
     datos: {
@@ -49,7 +51,9 @@ export function pasoBorrador({ ctx, fuente, formato, gancho, tema }: Prep): Paso
 
 // Algunos modelos envuelven la respuesta ({"borrador": {...}}): se desenvuelve antes de validar.
 export function normalizar(r: any) {
-  if (r && typeof r === 'object' && !Array.isArray(r.laminas)) { const v = Object.values(r).find((x: any) => x && typeof x === 'object' && Array.isArray(x.laminas)); if (v) return v; }
+  if (r && typeof r === 'object' && !Array.isArray(r.laminas)) { const v = Object.values(r).find((x: any) => x && typeof x === 'object' && Array.isArray(x.laminas)); if (v) r = v; }
+  // Variantes frecuentes de los modelos: {tipo_gancho, gancho}, {type, text}.
+  if (r && Array.isArray(r.ganchos)) r = { ...r, ganchos: r.ganchos.map((g: any) => g && typeof g === 'object' ? { tipo: g.tipo ?? g.tipo_gancho ?? g.type, texto: g.texto ?? g.gancho ?? g.text } : g) };
   return r;
 }
 
@@ -80,7 +84,7 @@ export function pasoCorregir(p: Prep, borrador: unknown, lista: string[]): Paso 
   return {
     sistema: instrucciones(p.ctx.prompts.redactar + '\n\n' + p.ctx.prompts.voz + '\n\n' + politica +
       '\n\nAhora corriges tu propio borrador. Arregla cada problema de la lista sin introducir otros: si una cifra no está en la fuente, sácala o reemplázala por una que sí esté; si una lámina es larga, acórtala o divídela; si faltan láminas, agrégalas con contenido de la fuente; cada lámina conserva un "tipo" válido. Devuelve el borrador completo con el mismo esquema.'),
-    datos: { fuente: p.fuente, formato: p.formato, tipo_gancho: p.gancho, problemas: lista, borrador },
+    datos: { fuente: p.fuente, formato: p.formato, tipo_gancho: p.gancho, tipos_de_gancho: tiposGancho, problemas: lista, borrador, esquema: ESQUEMA },
   };
 }
 

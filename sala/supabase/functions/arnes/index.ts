@@ -31,9 +31,9 @@ Deno.serve(async req => {
       if (b.paso === 'borrador') return reply({ paso: pasoBorrador(prep), formato: prep.formato, tipo_gancho: prep.gancho });
       if (b.paso === 'ganchos') return reply({ paso: pasoGanchos(prep, normalizar(texto(b.borrador))) });
       if (b.paso === 'aplicar_ganchos') return reply({ borrador: aplicarGanchos(prep, normalizar(texto(b.borrador)), texto(b.respuesta)) });
-      if (b.paso === 'revisar') { const bo = texto(b.borrador), l = problemas(prep, bo); return reply({ problemas: l, paso: l.length ? pasoCorregir(prep, bo, l) : null }); }
-      if (b.paso === 'verificar') { const bo = texto(b.borrador); if (problemas(prep, bo).length) throw new Error('El borrador todavía no cumple las reglas'); return reply({ paso: pasoVerificar(prep, bo) }); }
-      if (b.paso === 'cerrar') { const bo = texto(b.borrador); if (problemas(prep, bo).length) throw new Error('El borrador todavía no cumple las reglas'); return reply(cerrar(prep, bo, texto(b.informe))); }
+      if (b.paso === 'revisar') { const bo = normalizar(texto(b.borrador)), l = problemas(prep, bo); return reply({ problemas: l, paso: l.length ? pasoCorregir(prep, bo, l) : null }); }
+      if (b.paso === 'verificar') { const bo = normalizar(texto(b.borrador)); if (problemas(prep, bo).length) throw new Error('El borrador todavía no cumple las reglas'); return reply({ paso: pasoVerificar(prep, bo) }); }
+      if (b.paso === 'cerrar') { const bo = normalizar(texto(b.borrador)); if (problemas(prep, bo).length) throw new Error('El borrador todavía no cumple las reglas'); return reply(cerrar(prep, bo, texto(b.informe))); }
     }
     return reply({ error: 'Tarea o paso desconocido' }, 400);
   } catch (err) {

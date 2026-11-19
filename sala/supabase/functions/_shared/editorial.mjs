@@ -53,7 +53,7 @@ function words(s){return s.trim().split(/\s+/u).filter(Boolean).length}
 function textos(item){return [item.titulo,item.cuerpo,item.fuente,item.alt].filter(x=>typeof x==='string').join(' ')}
 export function validarTexto(text, evidence, sourceUrl, prohibidas=[]){
   if(typeof text!=='string'||text.length>50000) throw Error('El texto generado no es válido');
-  if(/\[[^\]]+\]|\b(?:TODO|TBD)\b/i.test(text)) throw Error('El borrador contiene marcadores pendientes');
+  const marcador=text.match(/\[[^\]]+\]|\b(?:TODO|TBD)\b/i);if(marcador) throw Error(`El borrador contiene un marcador pendiente: "${marcador[0].slice(0,60)}" (quita los corchetes o reemplázalo por el texto real)`);
   for(const link of text.match(/https?:\/\/[^\s<>)\]]+/gi)||[]) if(link.replace(/[.,;]+$/,'')!==sourceUrl) throw Error('El borrador contiene un enlace sin verificar');
   const clean=text.replace(/https?:\/\/[^\s<>)\]]+/gi,'');
   if(/\b10\.\d{4,9}\/[\w.()/:;-]+/i.test(clean)) throw Error('El borrador contiene un DOI sin verificar');
