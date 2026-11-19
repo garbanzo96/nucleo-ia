@@ -1,7 +1,7 @@
 -- Pedido de Gabriel (19-nov-2026): ver todo lo que circula, notas en español y carruseles con calidad periodística.
 alter table public.candidatos add column titulo_es text, add column resumen_es text;
 
-create function pg_temp.nuevo_prompt(nombre text, texto text) returns void language plpgsql as $$
+create or replace function pg_temp.nuevo_prompt(nombre text, texto text) returns void language plpgsql as $$
 declare v integer;
 begin
   select coalesce(max(version), 0) + 1 into v from public.prompts where agente = nombre;

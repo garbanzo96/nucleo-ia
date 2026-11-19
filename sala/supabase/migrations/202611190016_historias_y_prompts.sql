@@ -15,7 +15,7 @@ alter table public.candidatos add column historia_id uuid references public.hist
 create index candidatos_sin_historia on public.candidatos(creado_en) where historia_id is null;
 
 -- Prompts maestros. Cada uno entra como versión nueva y activa; las anteriores quedan guardadas.
-create function pg_temp.nuevo_prompt(nombre text, texto text) returns void language plpgsql as $$
+create or replace function pg_temp.nuevo_prompt(nombre text, texto text) returns void language plpgsql as $$
 declare v integer;
 begin
   select coalesce(max(version), 0) + 1 into v from public.prompts where agente = nombre;
