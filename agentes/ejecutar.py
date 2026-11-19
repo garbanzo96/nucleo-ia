@@ -163,6 +163,28 @@ FUSIONAR=("Recibes historias elegidas en lotes distintos. Agrupa las que cuentan
           'Si no hay repetidas: {"grupos": []}.')
 
 
+TRADUCIR=("Traduce al español de Chile el titular y el resumen de cada nota, con precisión y sin agregar nada. "
+          "Si ya están en español, déjalos igual. Nombres propios, de productos y de instituciones quedan como están. "
+          'Responde solo JSON: {"notas": [{"id": "t0", "titulo": "…", "resumen": "…"}]}')
+
+
+def traducir_notas(db, limite=500):
+    """Títulos y resúmenes en español para la vista de todas las notas (lotes de 40, IA rápida de la sala)."""
+    if not sala_api.activa(): return 'Traducción: solo corre en GitHub Actions.'
+    pendientes=[c for c in db.rows('candidatos','id,titulo,resumen,titulo_es,estado,creado_en') if not c.get('titulo_es') and c.get('estado') in ('nuevo','guardado')]
+    pendientes=sorted(pendientes,key=lambda c:c.get('creado_en') or '',reverse=True)[:limite]; hechas=0
+    for inicio in range(0,len(pendientes),40):
+        lote={f't{k}':c for k,c in enumerate(pendientes[inicio:inicio+40])}
+        try: r=clasificar.generar({'proveedor':'sala'},TRADUCIR,{'notas':[{'id':k,'titulo':_texto(c.get('titulo'),300),'resumen':_texto(c.get('resumen'),500)} for k,c in lote.items()]}) or {}
+        except RuntimeError as exc:
+            print('Un lote de traducción falló:',str(exc)[:200],file=sys.stderr); continue
+        for t in r.get('notas',[]) if isinstance(r.get('notas'),list) else []:
+            c=lote.get(t.get('id')) if isinstance(t,dict) else None
+            if c and _texto(t.get('titulo'),300):
+                db.update('candidatos',c['id'],{'titulo_es':_texto(t.get('titulo'),300),'resumen_es':_texto(t.get('resumen'),800)}); hechas+=1
+    return f'Traducción: {hechas} notas en español.'
+
+
 def mesa_de_edicion(db, limite=400, dias=3):
     """Como la mesa del Radar de la Fundación: agrupa las notas recientes por hecho, elige historias
     y les hace una ficha en español. Dos llamadas a la IA de la sala por cada 100 notas."""
@@ -271,6 +293,7 @@ def run(tipo, job_id=None, limite=0):
             count,total,failed=noticias(db,fuentes,seen,limite,desde,[c['fuente_primaria'] for c in vistos if c.get('fuente_primaria')])
             if total and failed==total: raise RuntimeError('No se pudo consultar ninguna fuente de noticias.')
             detalle.append(f'Noticias: {count} temas nuevos; {failed} de {total} fuentes no respondieron.')
+            detalle.append(traducir_notas(db))
             detalle.append(mesa_de_edicion(db))
         if tipo in ('academico','ambos'):
             conf={r['clave']:r['valor'] for r in db.rows('config','clave,valor')}; queries=conf.get('consultas_academicas',[])

@@ -70,6 +70,12 @@ class MesaTest(unittest.TestCase):
         self.assertEqual(db.tablas['historias'][0]['cobertura'], 2)
         self.assertEqual(gen.call_args_list[2].args[0], {'proveedor': 'sala', 'tarea': 'fichas'})
 
+    def test_traduce_notas(self):
+        db = DbFalsa()
+        with mock.patch.object(ejecutar.sala_api, 'activa', return_value=True), mock.patch.object(ejecutar.clasificar, 'generar', return_value={'notas': [{'id': 't0', 'titulo': 'La UE multa a X', 'resumen': 'r'}, {'id': 't9', 'titulo': 'no existe'}]}):
+            self.assertIn('1 notas', ejecutar.traducir_notas(db))
+        self.assertEqual(db.actualizados[0][2]['titulo_es'], 'La UE multa a X')
+
     def test_filtro_de_ia(self):
         self.assertTrue(ejecutar.trata_de_ia('Senado aprueba ley de inteligencia artificial'))
         self.assertTrue(ejecutar.trata_de_ia('OpenAI firma acuerdo con el Ministerio'))

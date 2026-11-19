@@ -7,3 +7,17 @@
 .panel-ia{background:var(--panel);border:1px solid var(--borde);border-radius:20px;padding:20px 24px;margin-bottom:24px;max-width:760px}.panel-ia .check{display:flex;gap:8px;align-items:center}.panel-ia .check input{width:auto;min-height:0}
 .etiqueta{display:inline-block;padding:6px 12px;border-radius:999px;border:1px solid var(--cian);color:var(--cian);font-size:13px}.angulo{margin:6px 0}
 .historia .meta{display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--muted);margin-bottom:6px}.historia .meta span{border:1px solid var(--borde);border-radius:999px;padding:3px 10px}.historia .meta .puntaje{border-color:var(--cian);color:var(--cian);font-weight:700}.historia ul{margin:8px 0;padding-left:18px;font-size:14px}
+.radar-barra{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0 0 20px}.radar-barra input{flex:1;min-width:200px}.vistas{display:flex;border:1px solid var(--borde);border-radius:12px;overflow:hidden}.vistas button{border:0;border-radius:0;background:transparent;color:var(--muted)}.vistas button.activa{background:var(--cian);color:#000}.nota .original{color:var(--muted);font-size:14px;font-style:italic}
+.zona-imagen{border:2px dashed var(--borde);border-radius:16px;padding:22px;text-align:center;color:var(--muted);cursor:copy}.zona-imagen:focus,.zona-imagen.soltar,.preview-wrap.soltar{border-color:var(--cian);outline:none;color:var(--texto)}
+/* Variedad de láminas según su tipo */
+.slide.largo .slide-content p{font-size:34px}
+.slide[data-tipo=gancho] .slide-content h2{font-size:100px;line-height:1.05}
+.slide[data-tipo=dato] .slide-content h2{font-size:112px;line-height:1;color:var(--cian)}
+.slide[data-tipo=cita] .slide-content h2{font-size:62px;font-style:italic;font-weight:600;line-height:1.2}
+.slide[data-tipo=cita] .slide-content h2::before{content:"“";display:block;font-size:160px;line-height:.6;color:var(--cian);font-style:normal}
+.slide[data-tipo=implicancias] .slide-content>div:nth-child(2),.slide[data-tipo=limites] .slide-content>div:nth-child(2){background:rgba(11,23,37,.85);border:2px solid rgba(35,64,93,.9);border-radius:28px;padding:44px}
+.slide[data-tipo=reflexion] .slide-content>div:nth-child(2){border-left:8px solid var(--cian);padding-left:44px}
+.slide[data-tipo=reflexion] .slide-content h2{font-size:68px}
+.slide[data-tipo=pregunta] .slide-content>div:nth-child(2){text-align:center}
+.slide[data-tipo=pregunta] .slide-content h2{font-size:76px;color:var(--cian)}
+.slide[data-tipo=pregunta] .slide-content p{font-size:42px}

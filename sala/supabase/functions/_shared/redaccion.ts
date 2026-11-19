@@ -36,7 +36,7 @@ type Prep = Awaited<ReturnType<typeof preparar>>;
 const evidencia = (p: Prep) => [p.fuente.titulo, p.fuente.resumen, (p.fuente as any).fecha || '', (p.fuente as any).anio || ''].join(' ');
 
 export function pasoBorrador({ ctx, fuente, formato, gancho, tema }: Prep): Paso {
-  const esquema = { laminas: [{ titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: '', texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', busqueda: '', prompt_ia: '' } };
+  const esquema = { laminas: [{ tipo: 'gancho | hecho | contexto | dato | cita | implicancias | reflexion | limites | pregunta', titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: '', texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', busqueda: '', prompt_ia: '' } };
   return {
     sistema: instrucciones(ctx.prompts.redactar + '\n\n' + ctx.prompts.voz + '\n\n' + politica),
     datos: {
@@ -79,7 +79,7 @@ export function problemas(p: Prep, borrador: unknown): string[] {
 export function pasoCorregir(p: Prep, borrador: unknown, lista: string[]): Paso {
   return {
     sistema: instrucciones(p.ctx.prompts.redactar + '\n\n' + p.ctx.prompts.voz + '\n\n' + politica +
-      '\n\nAhora corriges tu propio borrador. Arregla cada problema de la lista sin introducir otros: si una cifra no está en la fuente, sácala o reemplázala por una que sí esté; si una lámina es larga, acórtala o divídela; si faltan láminas, agrégalas con contenido de la fuente. Devuelve el borrador completo con el mismo esquema.'),
+      '\n\nAhora corriges tu propio borrador. Arregla cada problema de la lista sin introducir otros: si una cifra no está en la fuente, sácala o reemplázala por una que sí esté; si una lámina es larga, acórtala o divídela; si faltan láminas, agrégalas con contenido de la fuente; cada lámina conserva un "tipo" válido. Devuelve el borrador completo con el mismo esquema.'),
     datos: { fuente: p.fuente, formato: p.formato, tipo_gancho: p.gancho, problemas: lista, borrador },
   };
 }

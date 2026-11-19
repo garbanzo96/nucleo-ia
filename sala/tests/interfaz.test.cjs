@@ -100,6 +100,7 @@ test('las historias del radar muestran cobertura; guardadas siguen en el radar y
   {id:'h2',titulo:'Otra historia',estado:'nuevo',puntaje:5,cobertura:1,fuente_url:'https://x.cl',notas:[]},
   {id:'h3',titulo:'Descartada',estado:'descartado',puntaje:9,cobertura:1,fuente_url:'https://y.cl',notas:[]}];
  await w.__test.load();
+ d.getElementById('ver-historias').click();
  const radar=d.getElementById('candidatos').textContent;
  assert.match(radar,/3 medios/);assert.match(radar,/Guardada/);assert.doesNotMatch(radar,/Descartada/);
  assert.ok(radar.indexOf('La UE multa')<radar.indexOf('Otra historia'));
@@ -108,4 +109,27 @@ test('las historias del radar muestran cobertura; guardadas siguen en el radar y
  await new Promise(r=>setTimeout(r,0));
  const r=calls.filter(x=>x.name==='redactar').at(-1);
  assert.equal(r.body.fuente_primaria,'https://prensa.cl/nota');assert.equal(r.body.tema.angulo,'Qué cambia');assert.equal(r.body.tipo_gancho,'cifra concreta');
+});
+test('la vista de todas las notas muestra lo recolectado en español y las notas guardadas vuelven a la biblioteca',async()=>{
+ const {w,calls,rows}=setup(),d=w.document;
+ rows.candidatos=[{id:'c1',titulo:'AI models cost more in Spanish',titulo_es:'Los modelos de IA cuestan más en español',resumen:'r',url:'https://a.cl/1',estado:'guardado',creado_en:'2026-11-18'},{id:'c2',titulo:'Otra',url:'https://b.cl/2',estado:'nuevo',creado_en:'2026-11-17'},{id:'c3',titulo:'Descartada',url:'https://c.cl/3',estado:'descartado'}];
+ await w.__test.load();
+ const radar=d.getElementById('candidatos').textContent;
+ assert.match(radar,/Los modelos de IA cuestan más en español/);assert.match(radar,/AI models cost more/);assert.doesNotMatch(radar,/Descartada/);
+ assert.match(d.getElementById('ver-notas').textContent,/\(2\)/);
+ d.getElementById('radar-buscar').value='otra';d.getElementById('radar-buscar').dispatchEvent(new w.Event('input'));
+ assert.doesNotMatch(d.getElementById('candidatos').textContent,/cuestan/);
+ assert.match(d.getElementById('resultados-biblioteca').textContent,/cuestan más en español/);
+ d.getElementById('resultados-biblioteca').querySelector('button[data-c="c1"][data-accion="usar"]').click();
+ await new Promise(r=>setTimeout(r,0));
+ assert.equal(calls.filter(x=>x.name==='redactar').at(-1).body.fuente_primaria,'https://a.cl/1');
+});
+test('pegar una imagen en el editor la usa como fondo',async()=>{
+ const {w}=setup(),d=w.document;d.getElementById('editor').hidden=false;
+ const archivo=new w.File([new Uint8Array([0xff,0xd8,0xff])],'pegada.jpg',{type:'image/jpeg'});
+ const ev=new w.Event('paste',{bubbles:true,cancelable:true});ev.clipboardData={items:[{kind:'file',getAsFile:()=>archivo}]};
+ d.body.dispatchEvent(ev);
+ assert.ok(ev.defaultPrevented);assert.match(d.getElementById('notice').textContent,/Imagen pegada/);
+ const texto=new w.Event('paste',{bubbles:true,cancelable:true});texto.clipboardData={items:[{kind:'string',getAsFile:()=>null}]};
+ d.body.dispatchEvent(texto);assert.ok(!texto.defaultPrevented);
 });

@@ -1,4 +1,7 @@
 // Reglas deterministas: datos externos y texto generado se tratan como contenido, no como instrucciones.
+// Tipos de lámina: cada uno tiene su diseño en la sala. Máximo de palabras por lámina (título + cuerpo).
+export const TIPOS_LAMINA=['gancho','hecho','contexto','dato','cita','implicancias','reflexion','limites','pregunta'];
+export const PALABRAS_LAMINA=60;
 export const tiposGancho=['hallazgo contraintuitivo','pregunta filosófica directa','cifra concreta','tensión entre dos hechos','escena o historia','cita textual de un investigador','qué cambió con una norma','mito contra evidencia','dilema con un caso'];
 export function arxivId(url){
   let u; try{u=new URL(url)}catch{throw Error('Enlace de fuente inválido')}
@@ -72,7 +75,8 @@ export function problemasBorrador(result,evidence,sourceUrl,prohibidas,recientes
   for(const [i,l] of result.laminas.entries()){
     if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string')||!l.titulo.trim()||!l.alt.trim()){p.push(`Lámina ${i+1}: faltan título o texto alternativo`);continue}
     const n=words(l.titulo+' '+l.cuerpo);
-    if(n>40)p.push(`Lámina ${i+1}: tiene ${n} palabras y el máximo es 40`);
+    if(n>PALABRAS_LAMINA)p.push(`Lámina ${i+1}: tiene ${n} palabras y el máximo es ${PALABRAS_LAMINA}`);
+    if(l.tipo!==undefined&&!TIPOS_LAMINA.includes(l.tipo))p.push(`Lámina ${i+1}: tipo "${l.tipo}" no válido; usa uno de: ${TIPOS_LAMINA.join(', ')}`);
     if(i===0&&words(l.titulo)>12)p.push(`Lámina 1: el título tiene ${words(l.titulo)} palabras y el máximo es 12`);
     intentar(`Lámina ${i+1}: `,()=>validarTexto(textos(l),evidence,sourceUrl,prohibidas));
   }
