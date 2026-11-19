@@ -30,9 +30,21 @@
 .slide.sin-titulo .slide-content h2{display:none}
 .slide.sin-titulo .slide-content p{font-size:50px;line-height:1.25;font-weight:600}
 .slide.sin-titulo.largo .slide-content p{font-size:42px}
-/* Radar compacto: solo el título; al apretar se despliega el resto */
-details.item>summary{list-style:none;cursor:pointer}details.item>summary::-webkit-details-marker{display:none}
-details.item>summary h3{margin:4px 0 0}details.item:not([open])>summary h3::after{content:" +";color:var(--cian)}
-details.item[open]>summary{margin-bottom:10px}details.nota>summary .meta{display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--muted)}
-.fuentes-caja ul{max-height:340px;overflow:auto;list-style:none;margin:10px 0 0;padding:0 8px 0 0;border-top:1px solid var(--borde)}
-.fuentes-caja li{padding:8px 0;border-bottom:1px solid var(--borde);font-size:14px}.fuentes-caja li span{color:var(--muted)}
+/* Radar compacto: filas de una línea; el detalle se despliega al apretar */
+#candidatos{gap:0;border:1px solid var(--borde);border-radius:14px;overflow:hidden;background:var(--panel)}
+#candidatos .fila{border-bottom:1px solid var(--borde)}#candidatos .fila:last-of-type{border-bottom:0}
+#resultados-biblioteca .fila{border:1px solid var(--borde);border-radius:12px;background:var(--panel)}
+.fila{margin:0;color:var(--texto)}
+.fila>summary{list-style:none;display:flex;gap:14px;align-items:baseline;padding:11px 16px;cursor:pointer}
+.fila>summary::-webkit-details-marker{display:none}
+.fila>summary:hover,.fila[open]>summary{background:rgba(0,181,232,.07)}
+.fila-titulo{flex:1;font-size:15px;font-weight:600;line-height:1.35}
+.fila-meta{flex:none;font-size:12px;color:var(--muted);white-space:nowrap}.fila-meta b{color:var(--cian)}
+.fila-cuerpo{padding:2px 16px 16px;color:var(--texto)}.fila-cuerpo p{margin:8px 0}
+.fila-cuerpo details{margin:8px 0}
+.fila .etiqueta{padding:1px 8px;font-size:11px;vertical-align:2px}
+#candidatos>#mas-notas{margin:12px}
+@media (max-width:640px){.fila>summary{flex-direction:column;gap:4px}}
+/* Fuentes: ventana pequeña con scroll */
+.fuentes-ventana{height:200px;overflow-y:auto;list-style:none;margin:8px 0 0;padding:0 12px;border:1px solid var(--borde);border-radius:12px;background:var(--panel)}
+.fuentes-ventana li{padding:7px 0;border-bottom:1px solid var(--borde);font-size:13px}.fuentes-ventana li:last-child{border-bottom:0}.fuentes-ventana li span{color:var(--muted)}
