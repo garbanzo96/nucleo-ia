@@ -4,8 +4,13 @@ import math
 import os
 from urllib.request import Request, urlopen
 
+import sala_api
+
 
 def vector(texto):
+    if sala_api.activa():  # la sala calcula el vector con su clave
+        values = (sala_api.llamar({'op': 'vector', 'texto': texto[:15000]}) or {}).get('vector')
+        return values if isinstance(values, list) and len(values) == 768 else None
     key = os.environ.get('GEMINI_API_KEY')
     if not key or os.environ.get('GEMINI_FREE_TIER_CONFIRMED') != 'true': return None
     payload = {'content': {'parts': [{'text': 'title: none | text: ' + texto[:15000]}]}, 'output_dimensionality': 768}

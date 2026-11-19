@@ -15,17 +15,15 @@ on:
         default: ambos
 permissions:
   contents: read
-# Recolecta sin IA: fuentes, fuentes primarias, deduplicación y embeddings (Gemini gratuito de la sala).
-# La evaluación con IA la lanza cada miembro desde la sala con su propia clave.
+  id-token: write  # token OIDC con que el radar se identifica ante la sala; no hay secretos
+# Busca temas en las fuentes, encuentra la fuente primaria, quita duplicados y los entrega a la sala,
+# que los ordena con el prompt del radar y la IA de la sala (Gemini).
 jobs:
   radar:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SALA_API: https://mntbswehkqcndbbmnwmn.supabase.co/functions/v1/radar_api
       EVENTO: ${{ github.event_name }}
       TIPO_DISPATCH: ${{ github.event.client_payload.tipo }}
       TRABAJO_ID: ${{ github.event.client_payload.trabajo_id }}

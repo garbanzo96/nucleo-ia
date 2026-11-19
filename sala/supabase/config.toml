@@ -1,0 +1,5 @@
+# Configuración mínima para desplegar. radar_api no usa sesión de Supabase: verifica el token OIDC de GitHub Actions.
+project_id = "nucleo-sala"
+
+[functions.radar_api]
+verify_jwt = false

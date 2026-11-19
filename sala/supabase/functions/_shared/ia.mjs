@@ -1,33 +1,36 @@
 // Cada miembro usa su propia cuenta de IA. La sala pone el arnés (prompts, fuentes, validaciones);
 // la clave llega en la cabecera x-ia-clave de cada pedido y nunca se guarda ni se registra.
 
-/** @param {string} clave @returns {'claude'|'gemini'} */
+/** @param {string} clave @returns {'claude'|'gemini'|'openai'} */
 export function proveedorDeClave(clave) {
   if (/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(clave)) return 'claude';
   if (/^AIza[0-9A-Za-z_-]{30,}$/.test(clave)) return 'gemini';
-  throw new Error('Tu clave de IA no tiene un formato reconocido: usa una clave de Claude (sk-ant-…) o de Gemini (AIza…)');
+  if (/^sk-[A-Za-z0-9_-]{20,}$/.test(clave)) return 'openai';
+  throw new Error('Tu clave de IA no tiene un formato reconocido: usa una clave de Claude (sk-ant-…), ChatGPT (sk-…) o Gemini (AIza…)');
 }
 
-/** @param {Headers} headers @returns {{clave: string, proveedor: 'claude'|'gemini'}} */
-export function claveDelPedido(headers) {
+// Sin clave propia se usa la IA de la sala (Gemini, clave del Núcleo en el servidor).
+/** @param {Headers} headers @param {string|undefined} claveSala @returns {{clave: string, proveedor: 'claude'|'gemini'|'openai'}} */
+export function iaDelPedido(headers, claveSala) {
   const clave = (headers.get('x-ia-clave') || '').trim();
-  if (!clave) throw new Error('Falta tu clave de IA: agrégala en Configuración → Tu IA');
-  return { clave, proveedor: proveedorDeClave(clave) };
+  if (clave) return { clave, proveedor: proveedorDeClave(clave) };
+  if (!claveSala) throw new Error('Falta configurar la IA de la sala');
+  return { clave: claveSala, proveedor: 'gemini' };
 }
 
 // config.modelos = { claude: { redactar, verificar, voz, filtrar }, gemini: {...}, embeddings: {...} }
 export function modeloPara(modelos, proveedor, tarea) {
   const modelo = modelos?.[proveedor]?.[tarea];
-  const patron = proveedor === 'claude' ? /^claude-[a-z0-9.-]+$/ : /^gemini-[a-z0-9.-]+$/;
-  if (typeof modelo !== 'string' || !patron.test(modelo)) throw new Error(`Falta configurar el modelo de ${proveedor} para ${tarea}`);
+  const patron = { claude: /^claude-[a-z0-9.-]+$/, gemini: /^gemini-[a-z0-9.-]+$/, openai: /^(gpt|o)[a-z0-9.-]*$/ }[proveedor];
+  if (typeof modelo !== 'string' || !patron || !patron.test(modelo)) throw new Error(`Falta configurar el modelo de ${proveedor} para ${tarea}`);
   return modelo;
 }
 
 // Traduce errores del proveedor sin exponer la clave ni el detalle crudo.
 export function errorProveedor(status) {
-  if (status === 401 || status === 403) return 'Tu clave de IA no fue aceptada. Revísala en Configuración → Tu IA';
-  if (status === 429) return 'Tu cuenta de IA alcanzó su límite de uso. Espera un momento o revisa tu plan';
-  if (status === 400 || status === 402) return 'Tu cuenta de IA rechazó el pedido: revisa que tenga saldo y que el modelo exista';
+  if (status === 401 || status === 403) return 'La clave de IA no fue aceptada. Revísala en Configuración → Tu IA';
+  if (status === 429) return 'La cuenta de IA alcanzó su límite de uso. Espera un momento o conecta tu propia IA en Configuración';
+  if (status === 400 || status === 402 || status === 404) return 'La cuenta de IA rechazó el pedido: revisa que tenga saldo y que el modelo exista';
   return 'El proveedor de IA no respondió. Intenta de nuevo';
 }
 

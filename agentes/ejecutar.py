@@ -18,6 +18,7 @@ import academico
 import clasificar
 import embeddings
 import radar
+import sala_api
 from nucleo import canonical_url, deduplicar, resolver_primaria
 
 class Supabase:
@@ -175,10 +176,13 @@ def indexar_pendientes(db, limite=40):
 
 
 def run(tipo, job_id=None, limite=0):
-    url,key=os.environ.get('SUPABASE_URL'),os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
-    if not url or not key: raise RuntimeError('Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY; no se ejecutó el radar.')
-    if not url.startswith('https://'): raise RuntimeError('La URL de Supabase debe usar HTTPS.')
-    db=Supabase(url,key)
+    if sala_api.activa():
+        db=sala_api.SalaApi()  # GitHub Actions: sin secretos, con token OIDC
+    else:
+        url,key=os.environ.get('SUPABASE_URL'),os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+        if not url or not key: raise RuntimeError('Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY; no se ejecutó el radar.')
+        if not url.startswith('https://'): raise RuntimeError('La URL de Supabase debe usar HTTPS.')
+        db=Supabase(url,key)
     if not job_id:
         created=db.request('POST','trabajos',{'tipo':tipo,'estado':'pendiente','solicitado_por':'Programado'},'return=representation');job_id=created[0]['id']
     db.update('trabajos',job_id,{'estado':'en_curso'})
@@ -193,7 +197,7 @@ def run(tipo, job_id=None, limite=0):
             radar_prompt=next((p['contenido'] for p in prompts if p.get('agente')=='radar_noticias' and p.get('activa')),None)
             ejemplos=sorted((c for c in vistos if c.get('estado') in ('guardado','usado','descartado')),key=lambda c:c.get('creado_en') or '',reverse=True)[:20]
             muestras=[{'titulo':c.get('titulo'),'resumen':(c.get('resumen') or '')[:300],'estado':c['estado']} for c in ejemplos]
-            filtro=cfg.get('modelos',{}).get('filtrar')
+            filtro={'proveedor':'sala'} if sala_api.activa() else cfg.get('modelos',{}).get('filtrar')
             clasificacion={'modelo':filtro,'prompt':radar_prompt,'ejemplos':muestras} if isinstance(filtro,dict) and radar_prompt else None
             trabajos=db.rows('trabajos','tipo,estado,terminado_en'); fechas=[fecha_parseada(t.get('terminado_en')) for t in trabajos if t.get('estado')=='completado' and t.get('tipo') in ('noticias','ambos')]
             desde=max((f for f in fechas if f),default=None)
@@ -204,13 +208,13 @@ def run(tipo, job_id=None, limite=0):
             conf={r['clave']:r['valor'] for r in db.rows('config','clave,valor')}; queries=conf.get('consultas_academicas',[])
             if not isinstance(queries,list) or not all(isinstance(q,str) for q in queries): raise RuntimeError('Las consultas académicas no tienen un formato válido.')
             if limite: queries=queries[:limite]
-            filtro=conf.get('modelos',{}).get('filtrar'); prompt=next((p['contenido'] for p in db.rows('prompts','agente,contenido,activa') if p.get('agente')=='radar_academico' and p.get('activa')),None)
+            filtro={'proveedor':'sala'} if sala_api.activa() else conf.get('modelos',{}).get('filtrar'); prompt=next((p['contenido'] for p in db.rows('prompts','agente,contenido,activa') if p.get('agente')=='radar_academico' and p.get('activa')),None)
             ficha_modelo={'modelo':filtro,'prompt':prompt,'generar':clasificar.generar} if isinstance(filtro,dict) and prompt else None
             expansion=expansion_guardada(db)
             count,total,failed=academicos(db,queries,expansion,ficha_modelo)
             if total and failed==total: raise RuntimeError('No se pudo consultar OpenAlex.')
             detalle.append(f'Académico: {count} papers nuevos ({len(expansion)} propuestos por autores, venues y temas guardados); {failed} de {total} consultas fallaron.')
-        if os.environ.get('GEMINI_FREE_TIER_CONFIRMED') == 'true' and os.environ.get('GEMINI_API_KEY'):
+        if sala_api.activa() or (os.environ.get('GEMINI_FREE_TIER_CONFIRMED') == 'true' and os.environ.get('GEMINI_API_KEY')):
             detalle.append(f'Indexación semántica: {indexar_pendientes(db)} pendientes completados.')
         db.update('trabajos',job_id,{'estado':'completado','detalle':' '.join(detalle),'terminado_en':datetime.now(timezone.utc).isoformat()})
         return detalle

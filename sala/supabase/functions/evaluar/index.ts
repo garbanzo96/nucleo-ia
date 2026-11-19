@@ -1,5 +1,5 @@
 import { cors, miembro, reply } from '../_shared/auth.ts';
-import { claveDelPedido, modeloPara } from '../_shared/ia.mjs';
+import { iaDelPedido, modeloPara } from '../_shared/ia.mjs';
 import { generar } from '../_shared/modelo.ts';
 import { parseJson } from '../_shared/editorial.mjs';
 import { lotes, guardar } from '../_shared/evaluacion.ts';
@@ -11,7 +11,7 @@ Deno.serve(async req => {
   if (req.method !== 'POST') return reply({ error: 'Método no permitido' }, 405);
   let db; try { db = await miembro(req); } catch { return reply({ error: 'Sin acceso a la sala' }, 403); }
   try {
-    const ia = claveDelPedido(req.headers);
+    const ia = iaDelPedido(req.headers, Deno.env.get('GEMINI_API_KEY'));
     const plan = await lotes(db);
     const modelo = modeloPara(plan.modelos, ia.proveedor, 'filtrar');
     let evaluados = 0;

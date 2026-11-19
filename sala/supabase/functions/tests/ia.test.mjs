@@ -1,17 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { proveedorDeClave, claveDelPedido, modeloPara, errorProveedor, validarEvaluacion } from '../_shared/ia.mjs';
+import { proveedorDeClave, iaDelPedido, modeloPara, errorProveedor, validarEvaluacion } from '../_shared/ia.mjs';
 
 test('reconoce el proveedor por la forma de la clave', () => {
   assert.equal(proveedorDeClave('sk-ant-api03-' + 'a'.repeat(40)), 'claude');
   assert.equal(proveedorDeClave('AIza' + 'b'.repeat(35)), 'gemini');
-  assert.throws(() => proveedorDeClave('sk-otro-123'), /formato reconocido/);
+  assert.equal(proveedorDeClave('sk-proj-' + 'd'.repeat(40)), 'openai');
+  assert.throws(() => proveedorDeClave('sk-corta'), /formato reconocido/);
   assert.throws(() => proveedorDeClave('sk-ant-x\nInyeccion'), /formato reconocido/);
 });
 
-test('sin cabecera de clave pide configurarla', () => {
-  assert.throws(() => claveDelPedido(new Headers()), /Falta tu clave/);
-  assert.equal(claveDelPedido(new Headers({ 'x-ia-clave': ' AIza' + 'c'.repeat(35) + ' ' })).proveedor, 'gemini');
+test('sin clave propia se usa la IA de la sala', () => {
+  assert.deepEqual(iaDelPedido(new Headers(), 'AIzaSALA'), { clave: 'AIzaSALA', proveedor: 'gemini' });
+  assert.throws(() => iaDelPedido(new Headers(), undefined), /Falta configurar la IA/);
+  assert.equal(iaDelPedido(new Headers({ 'x-ia-clave': ' sk-ant-api03-' + 'c'.repeat(30) + ' ' }), 'AIzaSALA').proveedor, 'claude');
 });
 
 test('el modelo sale de la configuración del proveedor del miembro', () => {
@@ -24,6 +26,7 @@ test('el modelo sale de la configuración del proveedor del miembro', () => {
 
 test('los errores del proveedor no exponen detalles', () => {
   assert.match(errorProveedor(401), /no fue aceptada/);
+  assert.match(errorProveedor(404), /rechazó/);
   assert.match(errorProveedor(429), /límite/);
   assert.match(errorProveedor(500), /no respondió/);
 });

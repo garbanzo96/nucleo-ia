@@ -37,51 +37,34 @@ Desde aquí cualquier agente puede correr, en esta carpeta, `npx -y supabase@2.4
 
 Al crearlo queda como miembro de la sala por sí solo. Los miembros solo abren el enlace y escriben su nombre y la contraseña.
 
-## 3. Quién paga qué
+## 3. La IA de la sala
 
-La sala aporta el arnés: fuentes, prompts maestros, reglas, verificación y publicación. La IA la pone cada miembro con su propia cuenta (paso 5). Lo único común es la búsqueda semántica, que necesita un solo modelo de embeddings para que los vectores sean comparables: usa tu clave de Gemini en el nivel gratuito.
+La sala trae IA propia: usa la clave de Gemini del Núcleo, en el nivel gratuito, para ordenar los temas del radar, hacer las fichas de papers, redactar, ajustar la voz y verificar. Nadie más necesita cuentas ni claves.
 
-## 4. Secretos de la infraestructura común
+Cada miembro puede, si quiere, conectar su propia IA en Configuración → Tu IA (clave de API de Claude, ChatGPT o Gemini). Entonces sus borradores salen con su cuenta. La clave queda solo en su navegador. Quien prefiera usar su suscripción de Claude o ChatGPT sin clave de API tiene el modo CLI (`sala/cli/LEEME.md`).
 
-Cada secreto se escribe sin que quede en el historial de la terminal: `read -rs` lo pide sin mostrarlo.
+## 4. Secretos (una sola vez)
+
+En la terminal, desde `sala/`, cada comando pide el valor sin mostrarlo:
 
 ```sh
-read -rs V && npx -y supabase@2.40.7 secrets set GEMINI_API_KEY="$V"; unset V
-npx -y supabase@2.40.7 secrets set GEMINI_FREE_TIER_CONFIRMED=true
-read -rs V && npx -y supabase@2.40.7 secrets set GITHUB_DISPATCH_TOKEN="$V"; unset V
-read -rs V && npx -y supabase@2.40.7 secrets set GITHUB_PUBLICAR_TOKEN="$V"; unset V
+read -rs "V?Token de GitHub: " && npx -y supabase@2.40.7 secrets set GITHUB_PUBLICAR_TOKEN="$V" GITHUB_DISPATCH_TOKEN="$V"; unset V
+read -rs "V?Clave de Gemini: " && npx -y supabase@2.40.7 secrets set GEMINI_API_KEY="$V" GEMINI_FREE_TIER_CONFIRMED=true; unset V
 ```
 
-- `GEMINI_API_KEY`: de Google AI Studio, en un proyecto sin facturación. Solo calcula embeddings.
-- Los dos tokens de GitHub son fine-grained (GitHub → Settings → Developer settings → Fine-grained tokens), solo para `garbanzo96/nucleo-ia`, con permiso Contents en lectura y escritura. El primero permite lanzar la búsqueda de temas; el segundo, publicar notas en la web.
-- `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` las pone Supabase solo.
+- Token de GitHub: github.com/settings/personal-access-tokens/new, solo para `garbanzo96/nucleo-ia`, permiso Contents en lectura y escritura. Sirve para lanzar la investigación y publicar notas.
+- Clave de Gemini: aistudio.google.com → Get API key, en un proyecto sin facturación.
 
-En github.com/garbanzo96/nucleo-ia → Settings → Secrets and variables → Actions:
+GitHub no necesita secretos: el radar corre en GitHub Actions y se identifica ante la sala con un token firmado por GitHub (OIDC), que la función `radar_api` verifica.
 
-1. Secrets: `SUPABASE_URL` (`https://mntbswehkqcndbbmnwmn.supabase.co`), `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API Keys → service_role) y `GEMINI_API_KEY`.
-2. Variables: `GEMINI_FREE_TIER_CONFIRMED` = `true`.
+## 5. Uso
 
-La recolección de temas corre en GitHub Actions sin IA (gratis): lee las fuentes, busca la fuente primaria, quita duplicados y calcula embeddings. Corre sola todos los días y también cuando alguien aprieta «Buscar temas nuevos».
+1. Radar → Investigar. En 5 a 15 minutos aparecen los temas, ordenados, con ángulo y gancho propuestos. También corre solo todos los días.
+2. Hacer borrador en el tema elegido: la sala redacta, ajusta la voz y verifica contra la fuente.
+3. Editor: revisar, subir imagen con su crédito, completar la lista de control, guardar y aprobar.
+4. Publicar en la web, y Descargar para subir los JPEG a Instagram a mano.
 
-## 5. Cada miembro: su IA
-
-En la sala, Configuración → Tu IA, cada persona pega su clave:
-
-- Claude: console.anthropic.com → API Keys. La suscripción de Claude no sirve; la API se paga aparte. Conviene fijar un tope mensual en Billing → Spend limits.
-- Gemini: aistudio.google.com → Get API key. Tiene nivel gratuito con límites.
-
-La clave queda solo en ese navegador (o solo en la pestaña, si no marca «Recordar»). Viaja a la sala únicamente al evaluar el radar o pedir un borrador, se usa para ese pedido y no se guarda ni se registra. Los modelos por tarea se ajustan en Configuración → Ajustes → `modelos`.
-
-Sin clave de API también se puede: el modo CLI usa Claude Code o Codex con la suscripción de cada uno (`sala/cli/LEEME.md`).
-
-Con la clave puesta: «Evaluar con mi IA» puntúa los temas nuevos del radar y propone ángulo y gancho; «Redactar» arma el borrador, lo corrige con la voz del Núcleo y lo verifica contra la fuente.
-
-## 5b. Probar
-
-1. Entra a la sala con la contraseña.
-2. «Buscar temas nuevos» y revisa la corrida en la pestaña Actions de GitHub.
-3. Pon tu clave y aprieta «Evaluar con mi IA». Elige un tema, redacta, guarda, sube una imagen y descarga el ZIP.
-4. Activa la publicación web solo después de probar una completa: `npx -y supabase@2.40.7 secrets set ENABLE_WEB_PUBLICATION=true`. Instagram sigue apagado.
+Los prompts maestros se editan en Configuración → Prompts; cada cambio crea una versión nueva.
 
 ## 6. Cambiar la contraseña
 

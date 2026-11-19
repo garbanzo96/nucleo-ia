@@ -86,8 +86,10 @@ test('no permite guardar ni aprobar mientras valida una imagen nueva',async()=>{
  assert.equal(calls.some(c=>c.name==='guardar_post'),false);assert(d.getElementById('aprobar').disabled);
  release();await pending;assert.equal(d.getElementById('guardar-post').disabled,false);
 });
-test('sin clave de IA no se llama al modelo y la clave solo viaja a funciones con IA',async()=>{
+test('sin clave propia se usa la IA de la sala; la clave solo viaja a funciones con IA',async()=>{
  const {w,calls}=setup(),d=w.document;await d.getElementById('guardar-post').onclick();assert.equal(calls.at(-1).headers?.['x-ia-clave'],undefined);
- d.getElementById('borrar-clave').onclick();assert.match(d.getElementById('estado-clave').textContent,/Sin clave/);
- const antes=calls.length;await d.getElementById('evaluar').onclick();assert.equal(calls.length,antes);assert.match(d.getElementById('notice').textContent,/clave de IA/);
+ d.getElementById('borrar-clave').onclick();assert.match(d.getElementById('estado-clave').textContent,/IA del Núcleo/);
+ w.__test.setPost({...w.__test.getPost(),laminas:[{titulo:'',cuerpo:'',fuente:'',alt:''}]});await d.getElementById('redactar').onclick();
+ const r=calls.filter(x=>x.name==='redactar').at(-1);assert.ok(r);assert.equal(r.headers['x-ia-clave'],undefined);
+ assert.equal(d.getElementById('evaluar'),null);
 });
