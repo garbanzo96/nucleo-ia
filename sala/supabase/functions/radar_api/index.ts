@@ -55,7 +55,7 @@ Deno.serve(async req => {
       const conf = await fetch(`${url}/rest/v1/config?clave=eq.modelos&select=valor`, { headers: { apikey: servicio, Authorization: 'Bearer ' + servicio } }).then(r => r.json());
       const modelo = conf?.[0]?.valor?.gemini?.filtrar || 'gemini-3.1-flash-lite';
       try {
-        return json({ resultado: parseJson(await generar({ clave, proveedor: 'gemini' }, modelo, b.instrucciones, JSON.stringify(b.datos ?? {}))) });
+        return json({ resultado: parseJson(await generar({ clave, proveedor: 'gemini' }, modelo, b.instrucciones, JSON.stringify(b.datos ?? {}), 130000)) });
       } catch (err) {
         // Mensajes de errorProveedor o de parseJson: no incluyen la clave.
         return json({ error: (err instanceof Error ? err.message : 'Error de IA') + ' · modelo ' + modelo }, 502);

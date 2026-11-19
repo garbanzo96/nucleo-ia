@@ -159,7 +159,7 @@ def _texto(x, n):
 
 def mesa_de_edicion(db, limite=400, dias=3):
     """Como la mesa del Radar de la Fundación: agrupa las notas recientes por hecho, elige historias
-    y les hace una ficha en español. Dos llamadas a la IA de la sala por cada 200 notas."""
+    y les hace una ficha en español. Dos llamadas a la IA de la sala por cada 100 notas."""
     if not sala_api.activa(): return 'Mesa de edición: solo corre en GitHub Actions.'
     prompts={p['agente']:p['contenido'] for p in db.rows('prompts','agente,contenido,activa') if p.get('activa')}
     if not prompts.get('mesa') or not prompts.get('radar_noticias'): return 'Mesa de edición: faltan sus prompts.'
@@ -172,15 +172,17 @@ def mesa_de_edicion(db, limite=400, dias=3):
     previas=sorted(db.rows('historias','titulo,creado_en'),key=lambda h:h.get('creado_en') or '',reverse=True)
     cubiertas=[h['titulo'] for h in previas[:60]]
     hoy=datetime.now(timezone.utc).date().isoformat(); creadas=0
-    for inicio in range(0,len(notas),200):
-        ids={f'n{k}':c for k,c in enumerate(notas[inicio:inicio+200])}
+    for inicio in range(0,len(notas),100):
+        ids={f'n{k}':c for k,c in enumerate(notas[inicio:inicio+100])}
         lineas=[f"[{k}] {(c.get('creado_en') or '')[:10]} · {medios.get(c.get('fuente_id'),'')} · {_texto(c.get('titulo'),200)} — {_texto(c.get('resumen'),220)}" for k,c in ids.items()]
-        mesa=clasificar.generar({'proveedor':'sala'},prompts['mesa'],{'fecha':hoy,'notas':lineas,'ya_cubiertas':cubiertas}) or {}
+        try: mesa=clasificar.generar({'proveedor':'sala'},prompts['mesa'],{'fecha':hoy,'notas':lineas,'ya_cubiertas':cubiertas}) or {}
+        except RuntimeError as exc:
+            print('Un lote de la mesa falló; sigue con el siguiente:',str(exc)[:300],file=sys.stderr); continue
         elegidas=[]
         for h in mesa.get('historias',[]) if isinstance(mesa.get('historias'),list) else []:
             ns=[ids[n] for n in dict.fromkeys(h.get('notas',[]) if isinstance(h,dict) else []) if n in ids]
             if ns and _texto(h.get('titulo'),300): elegidas.append((h,ns))
-        elegidas=elegidas[:15]
+        elegidas=elegidas[:8]  # por lote de 100 notas; con varios lotes salen más
         if not elegidas: continue
         expediente=[{'id':f'h{k}','titulo':h['titulo'],'por_que':_texto(h.get('por_que'),400),
                      'notas':[{'medio':medios.get(c.get('fuente_id'),''),'titular':_texto(c.get('titulo'),300),'resumen':_texto(c.get('resumen'),600),'fuente_primaria':c.get('fuente_primaria') or ''} for c in ns]}

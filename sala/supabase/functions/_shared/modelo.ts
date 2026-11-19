@@ -6,11 +6,11 @@ export type IA = { clave: string; proveedor: 'claude' | 'gemini' | 'openai' };
 // Llama al proveedor con la clave del miembro. La clave no se guarda ni aparece en errores.
 const GEMINI_RESPALDO = 'gemini-3.1-flash-lite';
 
-export async function generar(ia: IA, modelo: string, instruccion: string, datos: string): Promise<string> {
+export async function generar(ia: IA, modelo: string, instruccion: string, datos: string, espera = 60000): Promise<string> {
   if (ia.proveedor === 'gemini') {
     // Gemini a veces responde 503 (saturado) o 429: un reintento con el modelo rápido, que casi siempre está libre.
     const pedir = (m: string) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
-      method: 'POST', signal: AbortSignal.timeout(60000),
+      method: 'POST', signal: AbortSignal.timeout(espera),
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': ia.clave },
       body: JSON.stringify({ systemInstruction: { parts: [{ text: instruccion }] }, contents: [{ role: 'user', parts: [{ text: datos }] }], generationConfig: { responseMimeType: 'application/json', ...(/^gemini-3/.test(m) && !m.includes('lite') ? { thinkingConfig: { thinkingLevel: 'low' } } : {}) } }),
     }).catch(() => null);
