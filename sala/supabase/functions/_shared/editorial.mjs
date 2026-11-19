@@ -75,8 +75,8 @@ export function validarBorrador(result,evidence,sourceUrl,prohibidas,recientes,f
   if(!seen.has(gancho))throw Error('Falta el tipo de gancho seleccionado');
   if(recientes.some(p=>p.formato===formato))throw Error('Formato usado recientemente');
   validarTexto(result.descripcion,evidence,sourceUrl,prohibidas);
-  if(!result.sugerencia_imagen||typeof result.sugerencia_imagen!=='object'||!['mostrar','terminos','donde','licencia'].every(k=>typeof result.sugerencia_imagen[k]==='string'&&result.sugerencia_imagen[k].trim()))throw Error('Falta la sugerencia de imagen o su licencia');
-  validarTexto(Object.values(result.sugerencia_imagen).join(' '),evidence,sourceUrl,prohibidas);
+  validarApoyos([],result.sugerencia_imagen,evidence,sourceUrl,prohibidas);
+  if(!result.sugerencia_imagen)throw Error('Falta la sugerencia de imagen');
   return result;
 }
 export function validarVerificacion(report,total){
@@ -95,10 +95,12 @@ export function validarApoyos(ganchos,imagen,evidence,sourceUrl,prohibidas=[]){
   });
   if(imagen==null)return {ganchos:lista,sugerencia_imagen:null};
   if(typeof imagen!=='object'||Array.isArray(imagen))throw Error('Sugerencia de imagen inválida');
-  const claves=['mostrar','terminos','donde','licencia'];
-  if(!claves.every(k=>typeof imagen[k]==='string'&&imagen[k].trim()&&imagen[k].length<=1000))throw Error('Falta información de la sugerencia de imagen');
+  // mostrar: qué debe verse; busqueda: términos para Google Imágenes; prompt_ia: prompt para generarla.
+  const claves=['mostrar','busqueda','prompt_ia'];
+  if(!claves.every(k=>typeof imagen[k]==='string'&&imagen[k].trim()&&imagen[k].length<=1500))throw Error('Falta información de la sugerencia de imagen');
+  if(claves.some(k=>/https?:\/\//i.test(imagen[k])))throw Error('La sugerencia de imagen no lleva enlaces');
   const sugerencia=Object.fromEntries(claves.map(k=>[k,imagen[k]]));
-  validarTexto(Object.values(sugerencia).join(' '),evidence,sourceUrl,prohibidas);
+  validarTexto(sugerencia.mostrar,evidence,sourceUrl,prohibidas);
   return {ganchos:lista,sugerencia_imagen:sugerencia};
 }
 

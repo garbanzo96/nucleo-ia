@@ -11,7 +11,8 @@ export async function cargarFuente(url: string) {
     if(!res.ok||!res.body)throw new Error('No se pudo comprobar el DOI');
     return crossrefFuente(JSON.parse(new TextDecoder().decode(await leerLimitado(res.body,524288))),doi);
   }
-  if(!['arxiv.org','www.arxiv.org'].includes(host))return fuenteOficial(url);
+  // Cualquier página pública: oficial si está en la lista, prensa si no. La primaria se prefiere, no se exige.
+  if(!['arxiv.org','www.arxiv.org'].includes(host))return fuenteOficial(url,{abierta:true});
   const id=arxivId(url);
   const endpoint=`https://export.arxiv.org/api/query?id_list=${encodeURIComponent(id)}&max_results=1`;
   const response=await fetch(endpoint,{redirect:'error',signal:AbortSignal.timeout(12000),headers:{Accept:'application/atom+xml'}});

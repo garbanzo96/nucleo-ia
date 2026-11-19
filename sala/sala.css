@@ -5,3 +5,4 @@
 .demo-banner{margin:0;padding:9px 20px;background:#143c54;color:#fff;text-align:center;font-size:13px}
 
 .panel-ia{background:var(--panel);border:1px solid var(--borde);border-radius:20px;padding:20px 24px;margin-bottom:24px;max-width:760px}.panel-ia .check{display:flex;gap:8px;align-items:center}.panel-ia .check input{width:auto;min-height:0}
+.etiqueta{display:inline-block;padding:6px 12px;border-radius:999px;border:1px solid var(--cian);color:var(--cian);font-size:13px}.angulo{margin:6px 0}

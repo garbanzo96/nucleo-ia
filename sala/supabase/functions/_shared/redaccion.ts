@@ -14,10 +14,10 @@ export async function preparar(db: any, body: any) {
 type Prep = Awaited<ReturnType<typeof preparar>>;
 
 export function pasoBorrador({ ctx, fuente, formato, gancho }: Prep): Paso {
-  const esquema = { laminas: [{ titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: '', texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', terminos: '', donde: '', licencia: '' } };
+  const esquema = { laminas: [{ titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: '', texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', busqueda: '', prompt_ia: '' } };
   return {
     sistema: instrucciones(ctx.prompts.redactar + '\n' + politica),
-    datos: { fuente, formato, tipo_gancho: gancho, tipos_recientes: ctx.anteriores.map((p: any) => p.tipo_gancho), esquema, limites: '6 a 10 láminas, 3 a 5 ganchos de tipos distintos, máximo 40 palabras por lámina y máximo 12 palabras en el primer título. La penúltima lámina explica límites. La descripción no contiene enlaces adicionales ni DOI.' },
+    datos: { fuente, formato, tipo_gancho: gancho, tipos_recientes: ctx.anteriores.map((p: any) => p.tipo_gancho), esquema, limites: '6 a 10 láminas, 3 a 5 ganchos de tipos distintos, máximo 40 palabras por lámina y máximo 12 palabras en el primer título. La penúltima lámina explica límites. La descripción no contiene enlaces adicionales ni DOI. sugerencia_imagen: mostrar = qué debería verse; busqueda = 3 a 6 palabras en inglés para Google Imágenes; prompt_ia = un prompt para generar la imagen con IA, sin texto dentro de la imagen, formato vertical 4:5, estilo editorial sobrio.' },
   };
 }
 
@@ -39,7 +39,7 @@ export function pasoVerificar({ ctx, fuente, formato, gancho }: Prep, corregido:
 
 export function cerrar({ fuente }: Prep, corregido: any, informe: unknown) {
   validarVerificacion(informe, corregido.laminas.length);
-  return { borrador: corregido, fuente: { ...fuente, alcance: fuente.tipo === 'oficial' ? 'texto de la página' : 'resumen' }, revision: informe, estado: 'borrador', advertencia: 'La revisión automática puede equivocarse. Una persona debe leer la fuente y verificar cada afirmación y cifra antes de aprobar.' };
+  return { borrador: corregido, fuente: { ...fuente, alcance: fuente.tipo === 'prensa' ? 'nota de prensa: busca y cita la fuente primaria si existe' : fuente.tipo === 'oficial' ? 'texto de la página' : 'resumen' }, revision: informe, estado: 'borrador', advertencia: 'La revisión automática puede equivocarse. Una persona debe leer la fuente y verificar cada afirmación y cifra antes de aprobar.' };
 }
 
 // Errores que se pueden mostrar tal cual: no contienen claves ni datos internos.

@@ -21,7 +21,7 @@ test('bloquea cifras, DOI, URLs o frases no respaldadas',()=>{
 });
 test('validación de borrador y segunda pasada no concede aprobación',()=>{
  const lamina={titulo:'Una pregunta',cuerpo:'Una idea',fuente:'arXiv',alt:'Una pregunta y una idea'};
- const data={laminas:Array.from({length:6},()=>({...lamina})),ganchos:[{tipo:'hallazgo contraintuitivo',texto:'Una idea'},{tipo:'pregunta filosófica directa',texto:'Una pregunta'},{tipo:'mito contra evidencia',texto:'Un caso'}],descripcion:'Una idea',sugerencia_imagen:{mostrar:'Un libro',terminos:'Libro',donde:'Openverse',licencia:'Revisar licencia'}};
+ const data={laminas:Array.from({length:6},()=>({...lamina})),ganchos:[{tipo:'hallazgo contraintuitivo',texto:'Una idea'},{tipo:'pregunta filosófica directa',texto:'Una pregunta'},{tipo:'mito contra evidencia',texto:'Un caso'}],descripcion:'Una idea',sugerencia_imagen:{mostrar:'Un libro',busqueda:'book on desk',prompt_ia:'Un libro abierto sobre un escritorio, luz suave, vertical 4:5'}};
  assert.equal(validarBorrador(data,'Una idea','https://arxiv.org/abs/2401.12345',[],[],'concepto clave','mito contra evidencia'),data);
  assert.throws(()=>validarBorrador({...data,laminas:data.laminas.slice(1)},'Una idea','https://arxiv.org/abs/2401.12345',[],[],'concepto clave','mito contra evidencia'));
  assert.throws(()=>validarVerificacion({laminas:[{respaldada:false,explicacion:'sin fuente'}],descripcion_respaldada:true},1));

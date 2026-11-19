@@ -9,11 +9,13 @@ export function dominioPrimario(host) {
   return Object.keys(primarias).find(d => h === d || h.endsWith('.' + d)) || null;
 }
 
-export function validarUrlOficial(url) {
+// abierta: acepta cualquier página pública (prensa, blogs), con las mismas protecciones de red.
+export function validarUrlOficial(url, abierta = false) {
   let u; try { u = new URL(url) } catch { throw Error('Enlace de fuente inválido') }
   if (u.protocol !== 'https:' || u.username || u.password || (u.port && u.port !== '443')) throw Error('Solo se admiten enlaces HTTPS sin credenciales ni puertos');
   const dominio = dominioPrimario(u.hostname);
-  if (!dominio || CON_CARGADOR_PROPIO.includes(dominio)) throw Error('Solo se admiten arXiv, DOI o fuentes oficiales de la lista');
+  if (dominio && CON_CARGADOR_PROPIO.includes(dominio)) throw Error('Solo se admiten arXiv, DOI o fuentes oficiales de la lista');
+  if (!dominio && !abierta) throw Error('Solo se admiten arXiv, DOI o fuentes oficiales de la lista');
   return {u, dominio};
 }
 
@@ -54,10 +56,10 @@ export async function leerLimitado(body, max) {
 
 // shortcut: fetch vuelve a resolver el dominio después del chequeo (rebinding); el riesgo queda acotado a dominios
 // oficiales de la lista. Si Supabase expone un cliente HTTP con IP fija, conectar a la IP validada.
-export async function leerOficial(url, {fetcher = fetch, resolver = resolverDns, limite = 3_000_000, timeout = 15000, saltos = 5} = {}) {
+export async function leerOficial(url, {fetcher = fetch, resolver = resolverDns, limite = 3_000_000, timeout = 15000, saltos = 5, abierta = false} = {}) {
   const signal = AbortSignal.timeout(timeout);
   for (let i = 0; i <= saltos; i++) {
-    const {u, dominio} = validarUrlOficial(url);
+    const {u, dominio} = validarUrlOficial(url, abierta);
     const ips = await resolver(u.hostname);
     if (!ips.length || !ips.every(ipPublica)) throw Error('Destino de red no público');
     const r = await fetcher(u.href, {redirect: 'manual', signal, headers: {Accept: 'text/html,application/xhtml+xml,application/pdf,text/plain;q=0.8', 'User-Agent': 'NucleoIA-Sala/1.0'}});
@@ -109,13 +111,14 @@ export function textoHtml(html) {
 // Fuente oficial con el mismo formato que arXiv y Crossref. Un PDF no se interpreta: queda para lectura humana.
 export async function fuenteOficial(url, opciones) {
   const r = await leerOficial(url, opciones);
-  const origen = primarias[r.dominio];
+  const origen = primarias[r.dominio] || new URL(r.url).hostname.replace(/^www\./, '');
+  const tipoFuente = r.dominio ? 'oficial' : 'prensa';
   if (!r.bytes) {
     const archivo = decodeURIComponent(new URL(r.url).pathname.split('/').pop() || 'documento.pdf');
-    return {titulo: archivo, resumen: '', autores: [origen], fecha: '', doi: null, url: r.url, origen, tipo: 'oficial', requiere_lectura_humana: true};
+    return {titulo: archivo, resumen: '', autores: [origen], fecha: '', doi: null, url: r.url, origen, tipo: tipoFuente, requiere_lectura_humana: true};
   }
   const html = decodificar(r.bytes, r.charset);
   const d = r.tipo === 'text/plain' ? {titulo: html.split('\n')[0].trim().slice(0, 300), fecha: '', autores: [], texto: html.trim()} : textoHtml(html);
   if (!d.titulo || d.texto.length < 200) throw Error('La fuente oficial no tiene texto legible');
-  return {titulo: d.titulo.slice(0, 500), resumen: d.texto.slice(0, 100_000), autores: d.autores.length ? d.autores : [origen], fecha: d.fecha, doi: null, url: r.url, origen, tipo: 'oficial'};
+  return {titulo: d.titulo.slice(0, 500), resumen: d.texto.slice(0, 100_000), autores: d.autores.length ? d.autores : [origen], fecha: d.fecha, doi: null, url: r.url, origen, tipo: tipoFuente};
 }

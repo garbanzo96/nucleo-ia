@@ -10,8 +10,7 @@ test('fuente, cifras y checklist obligatorios',()=>{
  assert.throws(()=>validarPost({...p,laminas:p.laminas.slice(1)},fuente,[]));
  assert.throws(()=>validarPost({...p,descripcion:'El estudio incluye 50 personas.'},fuente,[]));
  assert.throws(()=>validarPost({...p,descripcion:'https://sitio-ejemplo.cl/'},fuente,[]));
- assert.throws(()=>validarChecklist({...p,checklist:{...p.checklist,permiso_imagen:false}},'Ana'));
- assert.throws(()=>validarChecklist({...p,checklist:{...p.checklist,credito_imagen:false}},'Ana'));assert.throws(()=>validarChecklist({...p,credito_imagen:''},'Ana'));assert.throws(()=>validarChecklist(p,''));
+ assert.doesNotThrow(()=>validarChecklist({...p,credito_imagen:'',checklist:{fuente_leida:true,cifras_verificadas:true,sin_marcadores:true}},'Ana'));assert.throws(()=>validarChecklist({...p,checklist:{...p.checklist,sin_marcadores:false}},'Ana'));assert.throws(()=>validarChecklist(p,''));
 });
 test('tamaño JPEG válido y hash para detectar cambios',async()=>{
  assert.equal(leerJpeg(encoded(jpeg)).length,jpeg.length);const wrong=jpeg.slice();wrong[10]=0x39;assert.throws(()=>leerJpeg(encoded(wrong)));

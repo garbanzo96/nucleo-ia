@@ -18,8 +18,7 @@ export function validarPost(post,fuente,prohibidas=[]){
 export function validarCuenta(cuenta){if(typeof cuenta!=='string'||!/^@[a-z0-9._]{1,30}$/i.test(cuenta))throw Error('Falta configurar la cuenta de Instagram');return cuenta}
 export function validarChecklist(post,nombre){
   if(typeof nombre!=='string'||!nombre.trim()||nombre.length>100)throw Error('Falta el nombre de quien aprueba');
-  if(!post.checklist||!['fuente_leida','cifras_verificadas','permiso_imagen','credito_imagen','sin_marcadores'].every(k=>post.checklist[k]===true))throw Error('Falta completar el checklist');
-  if(!post.credito_imagen.trim())throw Error('Falta el crédito de la imagen');
+  if(!post.checklist||!['fuente_leida','cifras_verificadas','sin_marcadores'].every(k=>post.checklist[k]===true))throw Error('Falta completar el checklist');
 }
 export function leerJpeg(base64){
   if(typeof base64!=='string'||base64.length>2_800_000||!/^[a-zA-Z0-9+/]*={0,2}$/.test(base64))throw Error('JPEG inválido o demasiado grande');
