@@ -4,7 +4,7 @@
 /** @param {string} clave @returns {'claude'|'gemini'|'openai'} */
 export function proveedorDeClave(clave) {
   if (/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(clave)) return 'claude';
-  if (/^AIza[0-9A-Za-z_-]{30,}$/.test(clave)) return 'gemini';
+  if (/^(AIza[0-9A-Za-z_-]{30,}|AQ\.[0-9A-Za-z_.-]{30,})$/.test(clave)) return 'gemini';
   if (/^sk-[A-Za-z0-9_-]{20,}$/.test(clave)) return 'openai';
   throw new Error('Tu clave de IA no tiene un formato reconocido: usa una clave de Claude (sk-ant-…), ChatGPT (sk-…) o Gemini (AIza…)');
 }

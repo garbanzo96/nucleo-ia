@@ -110,13 +110,10 @@ def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=(), clasif
             clasificar.clasificar(output,clasificacion['modelo'],clasificacion['prompt'],clasificacion['ejemplos'])
         except Exception as exc:
             print('Clasificación no disponible; los temas quedan sin ordenar:',str(exc)[:300],file=sys.stderr)
-    for item in output:
-        item.pop('peso_fuente',None)
-        try:
-            value = embeddings.vector(item['titulo'] + ' ' + (item.get('resumen') or ''))
-            if value is not None: item['embedding'] = value
-        except (HTTPError, URLError, ValueError, TimeoutError, OSError):
-            pass  # La noticia se guarda sin vector y puede indexarse más tarde.
+    for item in output: item.pop('peso_fuente',None)
+    # Sin vector, la noticia se guarda igual y se indexa en una corrida posterior.
+    for item,value in zip(output,embeddings.vectores([i['titulo']+' '+(i.get('resumen') or '') for i in output])):
+        if value is not None: item['embedding']=value
     # PostgREST exige las mismas columnas en todo el lote: lo que no tiene vector va con null y se indexa después.
     for item in output: item.setdefault('embedding',None)
     for start in range(0,len(output),100): db.insert('candidatos',output[start:start+100],True)
@@ -141,15 +138,25 @@ def academicos(db, queries, expansion=(), ficha_modelo=None):
         if doi: seen_doi.add(doi)
         seen_url.add(url)
         academico.completar_ficha(work, **(ficha_modelo or {}))
-        try:
-            value = embeddings.vector(work['titulo'] + ' ' + (work.get('abstract') or ''))
-            if value is not None: work['embedding'] = value
-        except (HTTPError, URLError, ValueError, TimeoutError, OSError):
-            pass  # La ficha queda disponible para búsqueda textual.
         output.append(work)
+    for work,value in zip(output,embeddings.vectores([w['titulo']+' '+(w.get('abstract') or '') for w in output])):
+        if value is not None: work['embedding']=value  # sin vector queda para búsqueda textual
     for work in output: work.setdefault('embedding',None)
     for start in range(0,len(output),100): db.insert('papers',output[start:start+100],True)
     return len(output),len(queries),fallos
+
+
+def ordenar_pendientes(db, clasificacion, limite=700):
+    """Ordena con la IA de la sala los temas nuevos que quedaron sin puntaje (por ejemplo, si Gemini falló)."""
+    if not clasificacion: return 0
+    filas=[c for c in db.rows('candidatos','id,url,titulo,resumen,fuente_primaria,puntaje,estado') if c.get('estado')=='nuevo' and c.get('puntaje') is None][:limite]
+    try: clasificar.clasificar(filas,clasificacion['modelo'],clasificacion['prompt'],clasificacion['ejemplos'])
+    except Exception as exc: print('No se pudieron ordenar los temas pendientes:',str(exc)[:300],file=sys.stderr)
+    n=0
+    for c in filas:
+        if c.get('puntaje') is None: continue
+        db.update('candidatos',c['id'],{'puntaje':c['puntaje'],'angulo':c['angulo'],'gancho':c['gancho']}); n+=1
+    return n
 
 
 def expansion_guardada(db):
@@ -161,20 +168,16 @@ def expansion_guardada(db):
     except (HTTPError,URLError,ValueError,TimeoutError,OSError): return []
 
 
-def indexar_pendientes(db, limite=40):
-    """Completa gradualmente vectores antiguos; nunca indexa sin la opción gratuita habilitada."""
+def indexar_pendientes(db, limite=300):
+    """Completa gradualmente vectores pendientes, en lotes."""
     count = 0
     for table, field in (('candidatos','resumen'), ('papers','abstract')):
-        for row in db.rows(table, 'id,titulo,' + field + ',embedding'):
-            if row.get('embedding') is not None: continue
-            try:
-                value = embeddings.vector((row.get('titulo') or '') + ' ' + (row.get(field) or ''))
-            except (HTTPError, URLError, ValueError, TimeoutError, OSError):
-                continue
-            if value is None: return count
+        filas=[r for r in db.rows(table, 'id,titulo,' + field + ',embedding') if r.get('embedding') is None][:limite-count]
+        for row,value in zip(filas,embeddings.vectores([(r.get('titulo') or '')+' '+(r.get(field) or '') for r in filas])):
+            if value is None: continue
             db.update(table, row['id'], {'embedding':value})
             count += 1
-            if count >= limite: return count
+        if count >= limite: return count
     return count
 
 
@@ -207,6 +210,8 @@ def run(tipo, job_id=None, limite=0):
             count,total,failed=noticias(db,fuentes,seen,limite,desde,[c['fuente_primaria'] for c in vistos if c.get('fuente_primaria')],clasificacion)
             if total and failed==total: raise RuntimeError('No se pudo consultar ninguna fuente de noticias.')
             detalle.append(f'Noticias: {count} temas nuevos; {failed} de {total} fuentes no respondieron.')
+            ordenados=ordenar_pendientes(db,clasificacion)
+            if ordenados: detalle.append(f'{ordenados} temas anteriores ordenados.')
         if tipo in ('academico','ambos'):
             conf={r['clave']:r['valor'] for r in db.rows('config','clave,valor')}; queries=conf.get('consultas_academicas',[])
             if not isinstance(queries,list) or not all(isinstance(q,str) for q in queries): raise RuntimeError('Las consultas académicas no tienen un formato válido.')

@@ -38,12 +38,22 @@ Deno.serve(async req => {
       if (!Deno.env.get('GEMINI_API_KEY') || typeof b.texto !== 'string') return json({ vector: null });
       return json({ vector: await vector(b.texto) });
     }
+    if (b.op === 'vectores') {
+      // Hasta 100 textos por pedido: el nivel gratuito limita pedidos por minuto, no textos por pedido.
+      if (!Deno.env.get('GEMINI_API_KEY') || !Array.isArray(b.textos) || b.textos.length > 100 || !b.textos.every((t: unknown) => typeof t === 'string')) return json({ vectores: null });
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': Deno.env.get('GEMINI_API_KEY')! },
+        body: JSON.stringify({ requests: b.textos.map((t: string) => ({ model: 'models/gemini-embedding-2', content: { parts: [{ text: 'title: none | text: ' + t.slice(0, 15000) }] }, output_dimensionality: 768 })) }),
+      });
+      const lista = res.ok ? (await res.json()).embeddings : null;
+      return json({ vectores: Array.isArray(lista) ? lista.map((e: any) => Array.isArray(e?.values) && e.values.length === 768 ? e.values : null) : null, status: res.status });
+    }
     if (b.op === 'generar') {
       // IA de la sala (Gemini) para ordenar temas y completar fichas; mismo arnés que clasificar.py.
       const clave = Deno.env.get('GEMINI_API_KEY');
       if (!clave || typeof b.instrucciones !== 'string') return json({ resultado: null });
       const conf = await fetch(`${url}/rest/v1/config?clave=eq.modelos&select=valor`, { headers: { apikey: servicio, Authorization: 'Bearer ' + servicio } }).then(r => r.json());
-      const modelo = conf?.[0]?.valor?.gemini?.filtrar || 'gemini-3.8-flash';
+      const modelo = conf?.[0]?.valor?.gemini?.filtrar || 'gemini-3.1-flash-lite';
       try {
         return json({ resultado: parseJson(await generar({ clave, proveedor: 'gemini' }, modelo, b.instrucciones, JSON.stringify(b.datos ?? {}))) });
       } catch (err) {

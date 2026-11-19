@@ -37,5 +37,15 @@ class SalaApiTest(unittest.TestCase):
         self.assertTrue(llamar.call_args_list[0].args[0]['instrucciones'].startswith('P'))
 
 
+    def test_vectores_en_lotes_de_100(self):
+        env = {'SALA_API': 'https://x', 'ACTIONS_ID_TOKEN_REQUEST_URL': 'https://t'}
+        respuestas = [{'vectores': [[0.1] * 768] * 100}, {'vectores': [[0.2] * 768, None, [1]]}]
+        with mock.patch.dict(os.environ, env), mock.patch.object(sala_api, 'llamar', side_effect=respuestas) as llamar, mock.patch('time.sleep'):
+            v = embeddings.vectores(['t'] * 103)
+        self.assertEqual(len(v), 103)
+        self.assertEqual([len(llamar.call_args_list[i].args[0]['textos']) for i in range(2)], [100, 3])
+        self.assertIsNone(v[101]); self.assertIsNone(v[102]); self.assertEqual(len(v[100]), 768)
+
+
 if __name__ == '__main__':
     unittest.main()
