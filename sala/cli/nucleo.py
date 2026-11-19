@@ -153,23 +153,31 @@ def redactar(sala, ia, modelo, tema, formato, gancho):
     gancho = gancho or opciones['ganchos'][0]
     url, candidato = fuente_de(sala, tema)
     base = {'tarea': 'redactar', 'fuente_primaria': url, 'formato': formato, 'tipo_gancho': gancho}
-    print(f'Borrador ({formato}, gancho: {gancho}) con {ia}…', flush=True)
-    borrador = correr_ia(ia, modelo, sala.funcion('arnes', {**base, 'paso': 'borrador'})['paso'])
-    print('Corrigiendo la voz…', flush=True)
-    corregido = correr_ia(ia, modelo, sala.funcion('arnes', {**base, 'paso': 'voz', 'borrador': borrador})['paso'])
+    inicio = sala.funcion('arnes', {**base, 'paso': 'borrador'})
+    base.update(formato=inicio['formato'], tipo_gancho=inicio['tipo_gancho'])  # la sala puede cambiarlos por rotación
+    print(f"Borrador ({base['formato']}, gancho: {base['tipo_gancho']}) con {ia}…", flush=True)
+    borrador = correr_ia(ia, modelo, inicio['paso'])
+    for intento in range(3):
+        revision = sala.funcion('arnes', {**base, 'paso': 'revisar', 'borrador': borrador})
+        if not revision['paso']:
+            break
+        if intento == 2:
+            raise SystemExit('El borrador no cumplió las reglas: ' + '; '.join(revision['problemas'][:3]))
+        print(f"Corrigiendo {len(revision['problemas'])} problema(s)…", flush=True)
+        borrador = correr_ia(ia, modelo, revision['paso'])
     print('Verificando contra la fuente…', flush=True)
-    informe = correr_ia(ia, modelo, sala.funcion('arnes', {**base, 'paso': 'verificar', 'corregido': corregido})['paso'])
-    final = sala.funcion('arnes', {**base, 'paso': 'cerrar', 'corregido': corregido, 'informe': informe})
+    informe = correr_ia(ia, modelo, sala.funcion('arnes', {**base, 'paso': 'verificar', 'borrador': borrador})['paso'])
+    final = sala.funcion('arnes', {**base, 'paso': 'cerrar', 'borrador': borrador, 'informe': informe})
+    formato, gancho = base['formato'], base['tipo_gancho']
     b = final['borrador']
     post = {'formato': formato, 'tipo_gancho': gancho, 'fuente_primaria': url, 'candidato_id': candidato,
             'laminas': b['laminas'], 'descripcion': b.get('descripcion', ''), 'ganchos': b.get('ganchos', []),
             'sugerencia_imagen': b.get('sugerencia_imagen', {}), 'credito_imagen': '', 'imagen_privada': None,
             'encuadre': 50, 'oscurecimiento': 20, 'checklist': {}}
     guardado = sala.funcion('guardar_post', post)
-    dudosas = [i + 1 for i, l in enumerate(final['revision'].get('laminas', [])) if not l.get('respaldada')]
     print(f"Borrador guardado (revisión {guardado['revision']}). Ábrelo en la sala: Editor → Borradores guardados.")
-    if dudosas:
-        print('La verificación marcó sin respaldo las láminas: ' + ', '.join(map(str, dudosas)))
+    for alerta in final.get('alertas', []):
+        print('Revisar · ' + alerta)
     print(final['advertencia'])
 
 

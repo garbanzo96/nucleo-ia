@@ -56,27 +56,42 @@ export function validarTexto(text, evidence, sourceUrl, prohibidas=[]){
   if(/\b10\.\d{4,9}\/[\w.()/:;-]+/i.test(clean)) throw Error('El borrador contiene un DOI sin verificar');
   const digits=clean.match(/\d+(?:[.,]\d+)?/g)||[];
   const sourceNumbers=new Set((evidence.match(/\d+(?:[.,]\d+)?/g)||[]).map(n=>n.replace(',','.')));
-  if(digits.some(n=>!sourceNumbers.has(n.replace(',','.')))) throw Error('Hay una cifra que no aparece en la fuente');
+  const ajena=digits.find(n=>!sourceNumbers.has(n.replace(',','.')));if(ajena) throw Error(`Hay una cifra que no aparece en la fuente (${ajena})`);
   const normalized=text.toLocaleLowerCase('es');
   if(prohibidas.some(p=>typeof p==='string'&&p.trim()&&normalized.includes(p.toLocaleLowerCase('es')))) throw Error('El texto contiene una frase de la lista negra');
-  if(/\bno\s+[^.!?\n]{1,120},?\s+sino\s+/i.test(text)|| (text.match(/—/g)||[]).length>1) throw Error('El texto incumple las reglas de voz');
+  if(/\bno\s+[^.!?\n]{1,120},?\s+sino\s+/i.test(text)) throw Error('El texto incumple las reglas de voz: usa "no X, sino Y"');
+  if((text.match(/—/g)||[]).length>1) throw Error('El texto incumple las reglas de voz: más de una raya larga');
 }
-export function validarBorrador(result,evidence,sourceUrl,prohibidas,recientes,formato,gancho){
-  if(!result||typeof result!=='object'||!Array.isArray(result.laminas)||result.laminas.length<6||result.laminas.length>10) throw Error('El borrador debe tener entre 6 y 10 láminas');
-  if(!Array.isArray(result.ganchos)||result.ganchos.length<3||result.ganchos.length>5) throw Error('El borrador debe ofrecer entre 3 y 5 ganchos');
-  if(typeof result.descripcion!=='string'||!result.descripcion.trim()) throw Error('Falta la descripción');
+// Junta todos los problemas del borrador, con su ubicación, para devolvérselos al modelo y que corrija.
+export function problemasBorrador(result,evidence,sourceUrl,prohibidas,recientes,formato,gancho){
+  const p=[];const intentar=(donde,f)=>{try{f()}catch(e){p.push(donde+e.message)}};
+  if(!result||typeof result!=='object'||!Array.isArray(result.laminas))return ['El borrador no trae la lista de láminas'];
+  if(result.laminas.length<6||result.laminas.length>10)p.push(`El borrador debe tener entre 6 y 10 láminas y tiene ${result.laminas.length}`);
+  if(!Array.isArray(result.ganchos)||result.ganchos.length<3||result.ganchos.length>5)p.push('El borrador debe ofrecer entre 3 y 5 ganchos');
+  if(typeof result.descripcion!=='string'||!result.descripcion.trim())p.push('Falta la descripción');
   for(const [i,l] of result.laminas.entries()){
-    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string')||!l.titulo.trim()||!l.alt.trim()) throw Error('Faltan título o texto alternativo en una lámina');
-    if(words(l.titulo+' '+l.cuerpo)>40||(i===0&&words(l.titulo)>12)) throw Error('Una lámina supera el límite de extensión');
-    validarTexto(textos(l),evidence,sourceUrl,prohibidas);
+    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string')||!l.titulo.trim()||!l.alt.trim()){p.push(`Lámina ${i+1}: faltan título o texto alternativo`);continue}
+    const n=words(l.titulo+' '+l.cuerpo);
+    if(n>40)p.push(`Lámina ${i+1}: tiene ${n} palabras y el máximo es 40`);
+    if(i===0&&words(l.titulo)>12)p.push(`Lámina 1: el título tiene ${words(l.titulo)} palabras y el máximo es 12`);
+    intentar(`Lámina ${i+1}: `,()=>validarTexto(textos(l),evidence,sourceUrl,prohibidas));
   }
   const seen=new Set();
-  for(const h of result.ganchos){if(!h||!tiposGancho.includes(h.tipo)||typeof h.texto!=='string'||!h.texto.trim()||seen.has(h.tipo)||recientes.some(p=>p.tipo_gancho===h.tipo))throw Error('Los ganchos no cumplen la rotación');seen.add(h.tipo);validarTexto(h.texto,evidence,sourceUrl,prohibidas)}
-  if(!seen.has(gancho))throw Error('Falta el tipo de gancho seleccionado');
-  if(recientes.some(p=>p.formato===formato))throw Error('Formato usado recientemente');
-  validarTexto(result.descripcion,evidence,sourceUrl,prohibidas);
-  validarApoyos([],result.sugerencia_imagen,evidence,sourceUrl,prohibidas);
-  if(!result.sugerencia_imagen)throw Error('Falta la sugerencia de imagen');
+  for(const h of Array.isArray(result.ganchos)?result.ganchos:[]){
+    if(!h||!tiposGancho.includes(h.tipo)||typeof h.texto!=='string'||!h.texto.trim()){p.push('Hay un gancho sin tipo válido o sin texto');continue}
+    if(seen.has(h.tipo))p.push(`Gancho repetido: ${h.tipo}`);
+    if(recientes.some(x=>x.tipo_gancho===h.tipo))p.push(`El tipo de gancho "${h.tipo}" se usó hace poco`);
+    seen.add(h.tipo);intentar(`Gancho "${h.tipo}": `,()=>validarTexto(h.texto,evidence,sourceUrl,prohibidas));
+  }
+  if(Array.isArray(result.ganchos)&&!seen.has(gancho))p.push(`Falta un gancho del tipo pedido: ${gancho}`);
+  if(recientes.some(x=>x.formato===formato))p.push('Formato usado recientemente');
+  if(typeof result.descripcion==='string')intentar('Descripción: ',()=>validarTexto(result.descripcion,evidence,sourceUrl,prohibidas));
+  if(!result.sugerencia_imagen)p.push('Falta la sugerencia de imagen');else intentar('Sugerencia de imagen: ',()=>validarApoyos([],result.sugerencia_imagen,evidence,sourceUrl,prohibidas));
+  return p;
+}
+export function validarBorrador(result,evidence,sourceUrl,prohibidas,recientes,formato,gancho){
+  const p=problemasBorrador(result,evidence,sourceUrl,prohibidas,recientes,formato,gancho);
+  if(p.length)throw Error(p[0]);
   return result;
 }
 export function validarVerificacion(report,total){

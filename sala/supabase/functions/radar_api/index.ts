@@ -7,9 +7,9 @@ import { parseJson } from '../_shared/editorial.mjs';
 // clave de servicio que Supabase da a la función. Solo tablas y métodos que el radar necesita.
 const JWKS = createRemoteJWKSet(new URL('https://token.actions.githubusercontent.com/.well-known/jwks'));
 const PERMITIDO: Record<string, string[]> = {
-  GET: ['fuentes', 'candidatos', 'config', 'prompts', 'trabajos', 'papers', 'posts'],
-  POST: ['fuentes', 'candidatos', 'papers', 'trabajos'],
-  PATCH: ['trabajos', 'candidatos', 'papers'],
+  GET: ['fuentes', 'candidatos', 'config', 'prompts', 'trabajos', 'papers', 'posts', 'historias'],
+  POST: ['fuentes', 'candidatos', 'papers', 'trabajos', 'historias'],
+  PATCH: ['trabajos', 'candidatos', 'papers', 'historias'],
 };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'Content-Type': 'application/json' } });
 

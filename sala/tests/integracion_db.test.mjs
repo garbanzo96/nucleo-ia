@@ -14,7 +14,7 @@ const MIEMBRO = '11111111-1111-4111-8111-111111111111', AJENO = '22222222-2222-4
 const FILAS = {
   fuentes: `(id,nombre,url,tipo) values ('x','X','https://x.cl','n')`, candidatos: `(titulo,url) values ('X','https://x.cl/z')`,
   papers: `(titulo) values ('X')`, posts: `(formato,tipo_gancho) values ('historia','cifra concreta')`,
-  prompts: `(agente,version,contenido) values ('x',1,'x')`, config: `values ('x','1')`, trabajos: `(tipo) values ('noticias')`,
+  prompts: `(agente,version,contenido) values ('x',1,'x')`, config: `values ('x','1')`, trabajos: `(tipo) values ('noticias')`, historias: `(titulo) values ('X')`,
   miembros_sala: `values ('${AJENO}')`, publicacion_lock: `(id) values (false)`,
 };
 const TABLAS = Object.keys(FILAS);
@@ -97,9 +97,14 @@ test('migraciones y políticas de la sala', {skip: !dir && 'Falta PGLITE_DIR'}, 
     // posts y prompts solo cambian por el servidor o la RPC versionada.
     await falla(como(db, 'authenticated', MIEMBRO, `insert into public.posts(formato,tipo_gancho) values ('historia','cifra concreta')`), /permission denied/);
     await falla(como(db, 'authenticated', MIEMBRO, `update public.prompts set activa = false`), /permission denied/);
+    const antes = (await db.query(`select max(version)::int v from public.prompts where agente = 'redactar'`)).rows[0].v;
     await como(db, 'authenticated', MIEMBRO, `select public.nueva_version_prompt('redactar','Versión nueva')`);
     const activos = (await db.query(`select version from public.prompts where agente = 'redactar' and activa`)).rows;
-    assert.deepEqual(activos, [{version: 2}]);
+    assert.deepEqual(activos, [{version: antes + 1}]);
+    // La mesa de edición deja historias que el miembro puede guardar o descartar.
+    await db.query(`insert into public.historias(titulo) values ('Historia de prueba')`);
+    await como(db, 'authenticated', MIEMBRO, `update public.historias set estado = 'guardado', decidido_por = 'Ana'`);
+    assert.equal((await db.query(`select estado from public.historias`)).rows[0].estado, 'guardado');
     await falla(db.query(`update public.prompts set contenido = 'otro' where agente = 'redactar' and version = 1`), /inmutables/);
     // Storage: el miembro sube al bucket privado, nunca al público.
     await como(db, 'authenticated', MIEMBRO, `insert into storage.objects(bucket_id,name) values ('imagenes-privadas','fondos/a.jpg')`);

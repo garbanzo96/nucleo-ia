@@ -93,13 +93,19 @@ test('sin clave propia se usa la IA de la sala; la clave solo viaja a funciones 
  const r=calls.filter(x=>x.name==='redactar').at(-1);assert.ok(r);assert.equal(r.headers['x-ia-clave'],undefined);
  assert.equal(d.getElementById('evaluar'),null);
 });
-test('un tema guardado sigue en el radar y desde la biblioteca se redacta con la noticia si no hay primaria',async()=>{
+test('las historias del radar muestran cobertura; guardadas siguen en el radar y desde la biblioteca se redactan con su contexto',async()=>{
  const {w,calls,rows}=setup(),d=w.document;
- rows.candidatos=[{id:'c1',titulo:'Tema guardado',resumen:'R',url:'https://prensa.cl/nota',fuente_primaria:null,estado:'guardado',puntaje:8}];
+ rows.historias=[
+  {id:'h1',titulo:'La UE multa a una empresa por su IA',resumen:'Según la UE…',angulo:'Qué cambia',gancho:'La primera multa',formato:'paper en simple',tipo_gancho:'cifra concreta',estado:'guardado',puntaje:8,cobertura:3,fuente_url:'https://prensa.cl/nota',fuente_primaria:null,notas:[{medio:'A',titulo:'t1',url:'https://a.cl/1'},{medio:'B',titulo:'t2',url:'https://b.cl/2'},{medio:'C',titulo:'t3',url:'https://c.cl/3'}]},
+  {id:'h2',titulo:'Otra historia',estado:'nuevo',puntaje:5,cobertura:1,fuente_url:'https://x.cl',notas:[]},
+  {id:'h3',titulo:'Descartada',estado:'descartado',puntaje:9,cobertura:1,fuente_url:'https://y.cl',notas:[]}];
  await w.__test.load();
- assert.match(d.getElementById('candidatos').textContent,/Guardado/);
- assert.match(d.getElementById('resultados-biblioteca').textContent,/Tema guardado/);
+ const radar=d.getElementById('candidatos').textContent;
+ assert.match(radar,/3 medios/);assert.match(radar,/Guardada/);assert.doesNotMatch(radar,/Descartada/);
+ assert.ok(radar.indexOf('La UE multa')<radar.indexOf('Otra historia'));
+ assert.match(d.getElementById('resultados-biblioteca').textContent,/La UE multa/);
  d.getElementById('resultados-biblioteca').querySelector('button[data-accion="usar"]').click();
  await new Promise(r=>setTimeout(r,0));
- const r=calls.filter(x=>x.name==='redactar').at(-1);assert.equal(r.body.fuente_primaria,'https://prensa.cl/nota');
+ const r=calls.filter(x=>x.name==='redactar').at(-1);
+ assert.equal(r.body.fuente_primaria,'https://prensa.cl/nota');assert.equal(r.body.tema.angulo,'Qué cambia');assert.equal(r.body.tipo_gancho,'cifra concreta');
 });
