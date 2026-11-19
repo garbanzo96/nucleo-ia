@@ -43,7 +43,7 @@ Deno.serve(async req => {
       const clave = Deno.env.get('GEMINI_API_KEY');
       if (!clave || typeof b.instrucciones !== 'string') return json({ resultado: null });
       const conf = await fetch(`${url}/rest/v1/config?clave=eq.modelos&select=valor`, { headers: { apikey: servicio, Authorization: 'Bearer ' + servicio } }).then(r => r.json());
-      const modelo = conf?.[0]?.valor?.gemini?.filtrar || 'gemini-2.5-flash';
+      const modelo = conf?.[0]?.valor?.gemini?.filtrar || 'gemini-3.8-flash';
       return json({ resultado: parseJson(await generar({ clave, proveedor: 'gemini' }, modelo, b.instrucciones, JSON.stringify(b.datos ?? {}))) });
     }
     // Paso directo a PostgREST, restringido.
@@ -53,6 +53,8 @@ Deno.serve(async req => {
     if (typeof b.prefer === 'string' && /^[a-z=,-]+$/.test(b.prefer)) headers.Prefer = b.prefer;
     const res = await fetch(`${url}/rest/v1/${ruta}`, { method: metodo, headers, body: b.body === undefined ? undefined : JSON.stringify(b.body) });
     const texto = await res.text();
+    // 204 no admite cuerpo: PostgREST lo usa en PATCH con return=minimal.
+    if (res.status === 204) return new Response(null, { status: 204 });
     return new Response(texto || 'null', { status: res.status, headers: { 'Content-Type': 'application/json' } });
   } catch {
     return json({ error: 'La sala no pudo procesar el pedido del radar' }, 500);
