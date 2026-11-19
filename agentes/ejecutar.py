@@ -157,6 +157,12 @@ def _texto(x, n):
     return x.strip()[:n] if isinstance(x, str) else ''
 
 
+FUSIONAR=("Recibes historias elegidas en lotes distintos. Agrupa las que cuentan el mismo hecho (el mismo estudio, ley, "
+          "anuncio, acuerdo, informe o caso), aunque tengan otro titular. Temas parecidos con hechos distintos no se agrupan. "
+          'Responde solo JSON: {"grupos": [["s0", "s7"]]} con un grupo por hecho repetido, la historia más completa primero. '
+          'Si no hay repetidas: {"grupos": []}.')
+
+
 def mesa_de_edicion(db, limite=400, dias=3):
     """Como la mesa del Radar de la Fundación: agrupa las notas recientes por hecho, elige historias
     y les hace una ficha en español. Dos llamadas a la IA de la sala por cada 100 notas."""
@@ -171,28 +177,41 @@ def mesa_de_edicion(db, limite=400, dias=3):
     if not notas: return 'Mesa de edición: sin notas nuevas.'
     previas=sorted(db.rows('historias','titulo,creado_en'),key=lambda h:h.get('creado_en') or '',reverse=True)
     cubiertas=[h['titulo'] for h in previas[:60]]
-    hoy=datetime.now(timezone.utc).date().isoformat(); creadas=0
+    hoy=datetime.now(timezone.utc).date().isoformat(); elegidas=[]
+    # 1. Mesa por lotes de 100 notas: agrupa por hecho y elige.
     for inicio in range(0,len(notas),100):
         ids={f'n{k}':c for k,c in enumerate(notas[inicio:inicio+100])}
         lineas=[f"[{k}] {(c.get('creado_en') or '')[:10]} · {medios.get(c.get('fuente_id'),'')} · {_texto(c.get('titulo'),200)} — {_texto(c.get('resumen'),220)}" for k,c in ids.items()]
         try: mesa=clasificar.generar({'proveedor':'sala'},prompts['mesa'],{'fecha':hoy,'notas':lineas,'ya_cubiertas':cubiertas}) or {}
         except RuntimeError as exc:
             print('Un lote de la mesa falló; sigue con el siguiente:',str(exc)[:300],file=sys.stderr); continue
-        elegidas=[]
         for h in mesa.get('historias',[]) if isinstance(mesa.get('historias'),list) else []:
             ns=[ids[n] for n in dict.fromkeys(h.get('notas',[]) if isinstance(h,dict) else []) if n in ids]
-            if ns and _texto(h.get('titulo'),300): elegidas.append((h,ns))
-        elegidas=elegidas[:8]  # por lote de 100 notas; con varios lotes salen más
-        if not elegidas: continue
-        expediente=[{'id':f'h{k}','titulo':h['titulo'],'por_que':_texto(h.get('por_que'),400),
-                     'notas':[{'medio':medios.get(c.get('fuente_id'),''),'titular':_texto(c.get('titulo'),300),'resumen':_texto(c.get('resumen'),600),'fuente_primaria':c.get('fuente_primaria') or ''} for c in ns]}
-                    for k,(h,ns) in enumerate(elegidas)]
-        try: fichas=clasificar.generar({'proveedor':'sala'},prompts['radar_noticias'],{'historias':expediente}) or {}
+            if ns and _texto(h.get('titulo'),300): elegidas.append({'h':h,'notas':ns})
+    # 2. Fusión: los lotes se agrupan por separado, así que el mismo hecho puede salir dos veces.
+    if len(elegidas)>1:
+        try:
+            r=clasificar.generar({'proveedor':'sala'},FUSIONAR,{'historias':[{'id':f's{k}','titulo':e['h']['titulo'],'por_que':_texto(e['h'].get('por_que'),200)} for k,e in enumerate(elegidas)]}) or {}
+            for grupo in r.get('grupos',[]) if isinstance(r.get('grupos'),list) else []:
+                idx=[int(x[1:]) for x in grupo if isinstance(x,str) and x[1:].isdigit() and 0<=int(x[1:])<len(elegidas)]
+                idx=[k for k in dict.fromkeys(idx) if elegidas[k] is not None]
+                for k in idx[1:]:
+                    elegidas[idx[0]]['notas']+=[c for c in elegidas[k]['notas'] if c not in elegidas[idx[0]]['notas']]; elegidas[k]=None
+            elegidas=[e for e in elegidas if e]
+        except RuntimeError as exc: print('Fusión no disponible:',str(exc)[:300],file=sys.stderr)
+    # 3. Fichas de a 8 historias con el modelo de redacción (mejores ganchos), y guardar.
+    creadas=0
+    for inicio in range(0,len(elegidas),8):
+        bloque=elegidas[inicio:inicio+8]
+        expediente=[{'id':f'h{k}','titulo':e['h']['titulo'],'por_que':_texto(e['h'].get('por_que'),400),
+                     'notas':[{'medio':medios.get(c.get('fuente_id'),''),'titular':_texto(c.get('titulo'),300),'resumen':_texto(c.get('resumen'),600),'fuente_primaria':c.get('fuente_primaria') or ''} for c in e['notas']]}
+                    for k,e in enumerate(bloque)]
+        try: fichas=clasificar.generar({'proveedor':'sala','tarea':'fichas'},prompts['radar_noticias'],{'historias':expediente}) or {}
         except RuntimeError as exc:
             print('Fichas no disponibles:',str(exc)[:300],file=sys.stderr); fichas={}
         porid={f.get('id'):f for f in fichas.get('historias',[]) if isinstance(f,dict)} if isinstance(fichas.get('historias'),list) else {}
-        for k,(h,ns) in enumerate(elegidas):
-            f=porid.get(f'h{k}',{}); pj=f.get('puntaje')
+        for k,e in enumerate(bloque):
+            h,ns=e['h'],e['notas']; f=porid.get(f'h{k}',{}); pj=f.get('puntaje')
             primaria=next((c['fuente_primaria'] for c in ns if c.get('fuente_primaria')),None)
             fila={'titulo':_texto(h['titulo'],300),'por_que':_texto(h.get('por_que'),600),'categoria':_texto(h.get('categoria'),40),'nivel':_texto(h.get('nivel'),20),
                   'resumen':_texto(f.get('resumen'),1500),'angulo':_texto(f.get('angulo'),500),'gancho':_texto(f.get('gancho'),300),'tipo_gancho':_texto(f.get('tipo_gancho'),60),
@@ -203,7 +222,6 @@ def mesa_de_edicion(db, limite=400, dias=3):
             creada=db.request('POST','historias',fila,'return=representation')
             for c in ns: db.update('candidatos',c['id'],{'historia_id':creada[0]['id']})
             creadas+=1
-        cubiertas+=[h['titulo'] for h,_ in elegidas]
     return f'Mesa de edición: {creadas} historias elegidas de {len(notas)} notas.'
 
 

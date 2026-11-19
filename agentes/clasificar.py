@@ -13,7 +13,7 @@ def generar(modelo, instrucciones, datos):
     text=json.dumps(datos,ensure_ascii=False)
     if proveedor=='sala':  # IA de la sala (Gemini), vía radar_api
         if not sala_api.activa(): return None
-        return (sala_api.llamar({'op':'generar','instrucciones':system,'datos':datos}) or {}).get('resultado')
+        return (sala_api.llamar({'op':'generar','instrucciones':system,'datos':datos,'tarea':modelo.get('tarea','filtrar')}) or {}).get('resultado')
     if proveedor=='gemini':
         key=os.environ.get('GEMINI_API_KEY')
         if not key or os.environ.get('GEMINI_FREE_TIER_CONFIRMED')!='true': return None

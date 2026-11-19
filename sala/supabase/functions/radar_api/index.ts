@@ -53,7 +53,9 @@ Deno.serve(async req => {
       const clave = Deno.env.get('GEMINI_API_KEY');
       if (!clave || typeof b.instrucciones !== 'string') return json({ resultado: null });
       const conf = await fetch(`${url}/rest/v1/config?clave=eq.modelos&select=valor`, { headers: { apikey: servicio, Authorization: 'Bearer ' + servicio } }).then(r => r.json());
-      const modelo = conf?.[0]?.valor?.gemini?.filtrar || 'gemini-3.1-flash-lite';
+      // Fichas con el modelo de ganchos (mejor escritura); mesa y fusión con el rápido.
+      const g = conf?.[0]?.valor?.gemini || {};
+      const modelo = (b.tarea === 'fichas' ? g.ganchos || g.redactar : g.filtrar) || 'gemini-3.1-flash-lite';
       try {
         return json({ resultado: parseJson(await generar({ clave, proveedor: 'gemini' }, modelo, b.instrucciones, JSON.stringify(b.datos ?? {}), 130000)) });
       } catch (err) {

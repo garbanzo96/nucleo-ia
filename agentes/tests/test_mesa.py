@@ -57,6 +57,19 @@ class MesaTest(unittest.TestCase):
         self.assertEqual(db.tablas['historias'], [])
 
 
+    def test_fusiona_historias_repetidas(self):
+        db = DbFalsa()
+        respuestas = [
+            {'historias': [{'notas': ['n0'], 'titulo': 'La UE multa a X'}, {'notas': ['n1'], 'titulo': 'Bruselas sanciona a X'}]},
+            {'grupos': [['s0', 's1']]},
+            {'historias': [{'id': 'h0', 'puntaje': 7}]},
+        ]
+        with mock.patch.object(ejecutar.sala_api, 'activa', return_value=True), mock.patch.object(ejecutar.clasificar, 'generar', side_effect=respuestas) as gen:
+            ejecutar.mesa_de_edicion(db)
+        self.assertEqual(len(db.tablas['historias']), 1)
+        self.assertEqual(db.tablas['historias'][0]['cobertura'], 2)
+        self.assertEqual(gen.call_args_list[2].args[0], {'proveedor': 'sala', 'tarea': 'fichas'})
+
     def test_filtro_de_ia(self):
         self.assertTrue(ejecutar.trata_de_ia('Senado aprueba ley de inteligencia artificial'))
         self.assertTrue(ejecutar.trata_de_ia('OpenAI firma acuerdo con el Ministerio'))
