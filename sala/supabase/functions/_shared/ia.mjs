@@ -1,12 +1,14 @@
 // Cada miembro usa su propia cuenta de IA. La sala pone el arnés (prompts, fuentes, validaciones);
 // la clave llega en la cabecera x-ia-clave de cada pedido y nunca se guarda ni se registra.
 
+/** @param {string} clave @returns {'claude'|'gemini'} */
 export function proveedorDeClave(clave) {
   if (/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(clave)) return 'claude';
   if (/^AIza[0-9A-Za-z_-]{30,}$/.test(clave)) return 'gemini';
   throw new Error('Tu clave de IA no tiene un formato reconocido: usa una clave de Claude (sk-ant-…) o de Gemini (AIza…)');
 }
 
+/** @param {Headers} headers @returns {{clave: string, proveedor: 'claude'|'gemini'}} */
 export function claveDelPedido(headers) {
   const clave = (headers.get('x-ia-clave') || '').trim();
   if (!clave) throw new Error('Falta tu clave de IA: agrégala en Configuración → Tu IA');

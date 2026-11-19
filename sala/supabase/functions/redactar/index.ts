@@ -1,31 +1,21 @@
 import { cors, miembro, reply } from '../_shared/auth.ts';
-import { cargarFuente, contexto, exigirTexto, modeloJson, politica } from '../_shared/servicio.ts';
+import { modelosDe, modeloJson } from '../_shared/servicio.ts';
 import { claveDelPedido } from '../_shared/ia.mjs';
-import { validarBorrador, validarVerificacion } from '../_shared/editorial.mjs';
-
-const ia_errores=['Falta tu clave','Tu clave','Tu cuenta de IA','El proveedor de IA','Falta configurar el modelo'];
+import { preparar, pasoBorrador, pasoVoz, pasoVerificar, cerrar, mensajeVisible } from '../_shared/redaccion.ts';
 
 Deno.serve(async req=>{
   if(req.method==='OPTIONS')return new Response(null,{headers:cors});
   if(req.method!=='POST')return reply({error:'Método no permitido'},405);
   let db;try{db=await miembro(req)}catch{return reply({error:'Sin acceso a la sala'},403)}
   try {
-    const body=await req.json();
-    if(typeof body.fuente_primaria!=='string'||body.fuente_primaria.length>500||typeof body.formato!=='string'||typeof body.tipo_gancho!=='string')return reply({error:'Faltan fuente, formato o tipo de gancho'},400);
     const ia=claveDelPedido(req.headers);
-    const ctx=await contexto(db,body.formato,body.tipo_gancho,ia);
-    const fuente=exigirTexto(await cargarFuente(body.fuente_primaria));
-    const esquema={laminas:[{titulo:'',cuerpo:'',fuente:'',alt:''}],ganchos:[{tipo:'',texto:''}],descripcion:'',sugerencia_imagen:{mostrar:'',terminos:'',donde:'',licencia:''}};
-    const pedido={fuente,formato:body.formato,tipo_gancho:body.tipo_gancho,tipos_recientes:ctx.anteriores.map((p:any)=>p.tipo_gancho),esquema,limites:'6 a 10 láminas, 3 a 5 ganchos de tipos distintos, máximo 40 palabras por lámina y máximo 12 palabras en el primer título. La penúltima lámina explica límites. La descripción no contiene enlaces adicionales ni DOI.'};
-    const borrador=await modeloJson(ia,ctx.modelos.redactar,ctx.prompts.redactar+'\n'+politica,pedido);
-    const corregido=await modeloJson(ia,ctx.modelos.voz,ctx.prompts.voz+'\n'+politica+' Conserva la estructura JSON, no incorpores hechos ni cifras y compara el gancho y estructura con los ejemplos para evitar repeticiones.',{fuente,borrador,lista_negra:ctx.config.lista_negra,ejemplos_voz:ctx.ejemplos});
-    validarBorrador(corregido,fuente.titulo+' '+fuente.resumen,fuente.url,ctx.config.lista_negra,ctx.anteriores,body.formato,body.tipo_gancho);
-    const informe=await modeloJson(ia,ctx.modelos.verificar,ctx.prompts.verificar+'\n'+politica+' Responde {"laminas":[{"respaldada":true,"explicacion":"..."}],"descripcion_respaldada":true}; una entrada por lámina en orden. Si cualquier afirmación carece de apoyo, usa false.',{fuente,borrador:corregido});
-    validarVerificacion(informe,corregido.laminas.length);
-    return reply({borrador:corregido,fuente:{...fuente,alcance:fuente.tipo==='oficial'?'texto de la página':'resumen'},revision:informe,estado:'borrador',advertencia:'La revisión automática puede equivocarse. Una persona debe leer la fuente y verificar cada afirmación y cifra antes de aprobar.'});
+    const prep=await preparar(db,await req.json()), modelos=modelosDe(prep.ctx.config,ia);
+    const correr=(m:string,p:{sistema:string,datos:unknown})=>modeloJson(ia,m,p.sistema,p.datos);
+    const borrador=await correr(modelos.redactar,pasoBorrador(prep));
+    const corregido=await correr(modelos.voz,pasoVoz(prep,borrador));
+    const informe=await correr(modelos.verificar,pasoVerificar(prep,corregido));
+    return reply(cerrar(prep,corregido,informe));
   }catch(err){
-    const msg=err instanceof Error?err.message:'';
-    const permitidas=[...ia_errores,'La generación está desactivada','Solo se admiten enlaces','El enlace debe apuntar','El formato o el gancho','Hay publicaciones sin fecha','Falta aplicar la migración','La segunda pasada','El borrador','Una lámina','Los ganchos','Falta el tipo','Formato usado','Hay una cifra','El texto contiene','El texto incumple','La fuente no encontró','El resumen de la fuente','No se pudo comprobar','La fuente es un PDF','La fuente oficial','Destino de red','Tipo de contenido','Demasiadas redirecciones'];
-    return reply({error:permitidas.some(s=>msg.startsWith(s))?msg:'No se pudo generar el borrador. Revisa la configuración y la fuente.'},422);
+    return reply({error:mensajeVisible(err,'No se pudo generar el borrador. Revisa la configuración y la fuente.')},422);
   }
 });

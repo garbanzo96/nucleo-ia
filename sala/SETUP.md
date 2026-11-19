@@ -77,6 +77,8 @@ En la sala, Configuración → Tu IA, cada persona pega su clave:
 
 La clave queda solo en ese navegador (o solo en la pestaña, si no marca «Recordar»). Viaja a la sala únicamente al evaluar el radar o pedir un borrador, se usa para ese pedido y no se guarda ni se registra. Los modelos por tarea se ajustan en Configuración → Ajustes → `modelos`.
 
+Sin clave de API también se puede: el modo CLI usa Claude Code o Codex con la suscripción de cada uno (`sala/cli/LEEME.md`).
+
 Con la clave puesta: «Evaluar con mi IA» puntúa los temas nuevos del radar y propone ángulo y gancho; «Redactar» arma el borrador, lo corrige con la voz del Núcleo y lo verifica contra la fuente.
 
 ## 5b. Probar
