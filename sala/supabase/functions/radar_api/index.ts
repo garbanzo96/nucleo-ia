@@ -44,14 +44,19 @@ Deno.serve(async req => {
       if (!clave || typeof b.instrucciones !== 'string') return json({ resultado: null });
       const conf = await fetch(`${url}/rest/v1/config?clave=eq.modelos&select=valor`, { headers: { apikey: servicio, Authorization: 'Bearer ' + servicio } }).then(r => r.json());
       const modelo = conf?.[0]?.valor?.gemini?.filtrar || 'gemini-3.8-flash';
-      return json({ resultado: parseJson(await generar({ clave, proveedor: 'gemini' }, modelo, b.instrucciones, JSON.stringify(b.datos ?? {}))) });
+      try {
+        return json({ resultado: parseJson(await generar({ clave, proveedor: 'gemini' }, modelo, b.instrucciones, JSON.stringify(b.datos ?? {}))) });
+      } catch (err) {
+        // Mensajes de errorProveedor o de parseJson: no incluyen la clave.
+        return json({ error: (err instanceof Error ? err.message : 'Error de IA') + ' · modelo ' + modelo }, 502);
+      }
     }
     // Paso directo a PostgREST, restringido.
     const metodo = String(b.method), ruta = String(b.path || ''), tabla = ruta.split('?')[0];
     if (!PERMITIDO[metodo]?.includes(tabla) || /[\s#]/.test(ruta) || (metodo === 'PATCH' && !/[?&]id=eq\.[0-9a-f-]{36}$/.test(ruta))) return json({ error: 'Operación no permitida' }, 400);
     const headers: Record<string, string> = { apikey: servicio, Authorization: 'Bearer ' + servicio, 'Content-Type': 'application/json', Accept: 'application/json' };
     if (typeof b.prefer === 'string' && /^[a-z=,-]+$/.test(b.prefer)) headers.Prefer = b.prefer;
-    const res = await fetch(`${url}/rest/v1/${ruta}`, { method: metodo, headers, body: b.body === undefined ? undefined : JSON.stringify(b.body) });
+    const res = await fetch(`${url}/rest/v1/${ruta}`, { method: metodo, headers, body: b.body == null || metodo === 'GET' ? undefined : JSON.stringify(b.body) });
     const texto = await res.text();
     // 204 no admite cuerpo: PostgREST lo usa en PATCH con return=minimal.
     if (res.status === 204) return new Response(null, { status: 204 });

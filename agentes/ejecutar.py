@@ -108,8 +108,8 @@ def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=(), clasif
     if clasificacion:
         try:
             clasificar.clasificar(output,clasificacion['modelo'],clasificacion['prompt'],clasificacion['ejemplos'])
-        except Exception:
-            print('Clasificación no disponible; los temas quedan pendientes de evaluar.',file=sys.stderr)
+        except Exception as exc:
+            print('Clasificación no disponible; los temas quedan sin ordenar:',str(exc)[:300],file=sys.stderr)
     for item in output:
         item.pop('peso_fuente',None)
         try:
@@ -117,6 +117,8 @@ def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=(), clasif
             if value is not None: item['embedding'] = value
         except (HTTPError, URLError, ValueError, TimeoutError, OSError):
             pass  # La noticia se guarda sin vector y puede indexarse más tarde.
+    # PostgREST exige las mismas columnas en todo el lote: lo que no tiene vector va con null y se indexa después.
+    for item in output: item.setdefault('embedding',None)
     for start in range(0,len(output),100): db.insert('candidatos',output[start:start+100],True)
     return len(output),len(selected),fallos
 
@@ -145,6 +147,7 @@ def academicos(db, queries, expansion=(), ficha_modelo=None):
         except (HTTPError, URLError, ValueError, TimeoutError, OSError):
             pass  # La ficha queda disponible para búsqueda textual.
         output.append(work)
+    for work in output: work.setdefault('embedding',None)
     for start in range(0,len(output),100): db.insert('papers',output[start:start+100],True)
     return len(output),len(queries),fallos
 

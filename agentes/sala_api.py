@@ -34,7 +34,11 @@ def llamar(cuerpo, timeout=150):
             return json.loads(raw) if raw else None
     except HTTPError as e:
         destino = str(cuerpo.get('path') or cuerpo.get('op') or '').split('?')[0]
-        raise RuntimeError(f'La sala rechazó {cuerpo.get("method") or ""} {destino} (HTTP {e.code})') from None
+        try:
+            detalle = e.read(600).decode('utf-8', 'replace')  # mensaje de PostgREST o de la sala, sin datos
+        except OSError:
+            detalle = ''
+        raise RuntimeError(f'La sala rechazó {cuerpo.get("method") or ""} {destino} (HTTP {e.code}) {detalle}') from None
 
 
 class SalaApi:
