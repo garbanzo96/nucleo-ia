@@ -29,18 +29,13 @@ Desde aquí cualquier agente puede correr, en esta carpeta, `npx -y supabase@2.4
 
 ## 2. Usuario compartido de la sala
 
-1. En el panel de Supabase, Authentication → Users → Add user → Create new user. Correo: `sala@nucleo-ia.cl` (es el que trae `conexion.js`; no necesita existir, no se le envía nada). Contraseña: la contraseña compartida. Marca Auto Confirm User.
+1. En el panel de Supabase: Authentication → Users → Add user → Create new user.
+   - Email: `sala@nucleo-ia.cl`. No tiene que existir ni ser tuyo: es solo el nombre interno del usuario y no se le envía ningún correo.
+   - Password: la contraseña compartida que darás a los miembros.
+   - Marca Auto Confirm User.
 2. Authentication → Sign In / Providers: desactiva Allow new users to sign up.
-3. SQL Editor → New query:
 
-   ```sql
-   insert into public.miembros_sala(usuario)
-   select id from auth.users where email = 'sala@nucleo-ia.cl';
-   ```
-
-   Debe decir que agregó una fila.
-
-Los miembros solo abren el enlace de la sala y escriben su nombre y la contraseña. La URL y la clave pública del proyecto ya vienen en `conexion.js`; la clave `anon` es pública por diseño y sin la contraseña no da acceso a nada.
+Al crearlo queda como miembro de la sala por sí solo. Los miembros solo abren el enlace y escriben su nombre y la contraseña.
 
 ## 3. Quién paga qué
 

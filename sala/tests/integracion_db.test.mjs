@@ -23,7 +23,7 @@ const TABLAS = Object.keys(FILAS);
 const STUB = `
 create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
 create schema extensions; create schema auth; create schema storage;
-create table auth.users(id uuid primary key);
+create table auth.users(id uuid primary key, email text);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 create table storage.buckets(id text primary key, name text not null, public boolean default false, allowed_mime_types text[], file_size_limit bigint);
 create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id), name text, metadata jsonb);
@@ -60,6 +60,14 @@ const falla = (p, re) => assert.rejects(p, re);
 
 test('migraciones y políticas de la sala', {skip: !dir && 'Falta PGLITE_DIR'}, async t => {
   const db = await abrir();
+
+  await t.test('el usuario compartido queda como miembro al crearlo; otro correo no', async () => {
+    const sala = '33333333-3333-4333-8333-333333333333', otro = '44444444-4444-4444-8444-444444444444';
+    await db.exec(`insert into auth.users values ('${sala}', 'Sala@Nucleo-IA.cl'), ('${otro}', 'alguien@ejemplo.cl')`);
+    const ids = (await db.query('select usuario from public.miembros_sala')).rows.map(r => r.usuario);
+    assert.ok(ids.includes(sala)); assert.ok(!ids.includes(otro));
+    await db.exec(`delete from public.miembros_sala where usuario = '${sala}'; delete from auth.users where id in ('${sala}', '${otro}')`);
+  });
 
   await t.test('anon no lee ni escribe ninguna tabla', async () => {
     for (const tabla of TABLAS) {
