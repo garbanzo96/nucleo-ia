@@ -182,9 +182,11 @@ def mesa_de_edicion(db, limite=400, dias=3):
     for inicio in range(0,len(notas),100):
         ids={f'n{k}':c for k,c in enumerate(notas[inicio:inicio+100])}
         lineas=[f"[{k}] {(c.get('creado_en') or '')[:10]} · {medios.get(c.get('fuente_id'),'')} · {_texto(c.get('titulo'),200)} — {_texto(c.get('resumen'),220)}" for k,c in ids.items()]
-        try: mesa=clasificar.generar({'proveedor':'sala'},prompts['mesa'],{'fecha':hoy,'notas':lineas,'ya_cubiertas':cubiertas}) or {}
-        except RuntimeError as exc:
-            print('Un lote de la mesa falló; sigue con el siguiente:',str(exc)[:300],file=sys.stderr); continue
+        mesa=None
+        for intento in (1,2):  # Gemini a veces se demora o se satura: un reintento por lote
+            try: mesa=clasificar.generar({'proveedor':'sala'},prompts['mesa'],{'fecha':hoy,'notas':lineas,'ya_cubiertas':cubiertas}) or {}; break
+            except RuntimeError as exc: print(f'Lote de la mesa, intento {intento} fallido:',str(exc)[:200],file=sys.stderr)
+        if mesa is None: continue
         for h in mesa.get('historias',[]) if isinstance(mesa.get('historias'),list) else []:
             ns=[ids[n] for n in dict.fromkeys(h.get('notas',[]) if isinstance(h,dict) else []) if n in ids]
             if ns and _texto(h.get('titulo'),300): elegidas.append({'h':h,'notas':ns})
