@@ -24,6 +24,9 @@ test('validación de borrador y segunda pasada no concede aprobación',()=>{
  const data={laminas:Array.from({length:6},()=>({...lamina})),ganchos:[{tipo:'hallazgo contraintuitivo',texto:'Una idea'},{tipo:'pregunta filosófica directa',texto:'Una pregunta'},{tipo:'mito contra evidencia',texto:'Un caso'}],descripcion:'Una idea',sugerencia_imagen:{mostrar:'Un libro',busqueda:'book on desk',prompt_ia:'Un libro abierto sobre un escritorio, luz suave, vertical 4:5'}};
  assert.equal(validarBorrador(data,'Una idea','https://arxiv.org/abs/2401.12345',[],[],'concepto clave','mito contra evidencia'),data);
  assert.throws(()=>validarBorrador({...data,laminas:data.laminas.slice(1)},'Una idea','https://arxiv.org/abs/2401.12345',[],[],'concepto clave','mito contra evidencia'));
+ const sinTitulo=(i)=>({...data,laminas:data.laminas.map((l,j)=>j===i?{...l,titulo:''}:l)});
+ assert.doesNotThrow(()=>validarBorrador(sinTitulo(2),'Una idea','https://arxiv.org/abs/2401.12345',[],[],'concepto clave','mito contra evidencia'));
+ assert.throws(()=>validarBorrador(sinTitulo(0),'Una idea','https://arxiv.org/abs/2401.12345',[],[],'concepto clave','mito contra evidencia'),/gancho/);
  assert.throws(()=>validarVerificacion({laminas:[{respaldada:false,explicacion:'sin fuente'}],descripcion_respaldada:true},1));
  validarVerificacion({laminas:[{respaldada:true,explicacion:'El resumen lo indica'}],descripcion_respaldada:true},1);
 });

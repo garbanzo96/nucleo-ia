@@ -21,3 +21,18 @@
 .slide[data-tipo=pregunta] .slide-content>div:nth-child(2){text-align:center}
 .slide[data-tipo=pregunta] .slide-content h2{font-size:76px;color:var(--cian)}
 .slide[data-tipo=pregunta] .slide-content p{font-size:42px}
+/* Solo el gancho lleva foto; el resto alterna fondos para que cada lámina se vea distinta */
+.slide:not([data-tipo=gancho]) :is(.slide-photo,.slide-veil,.slide-top,.slide-bottom){display:none}
+.slide[data-tipo=dato],.slide[data-tipo=implicancias],.slide[data-tipo=reflexion]{background:#0b1725}
+.slide[data-tipo=pregunta]{background:var(--cian);color:#000}
+.slide[data-tipo=pregunta] .slide-content :is(h2,p,.slide-label,.slide-source,footer span){color:#000}
+.slide[data-tipo=implicancias] .slide-content>div:nth-child(2){background:#000}
+.slide.sin-titulo .slide-content h2{display:none}
+.slide.sin-titulo .slide-content p{font-size:50px;line-height:1.25;font-weight:600}
+.slide.sin-titulo.largo .slide-content p{font-size:42px}
+/* Radar compacto: solo el título; al apretar se despliega el resto */
+details.item>summary{list-style:none;cursor:pointer}details.item>summary::-webkit-details-marker{display:none}
+details.item>summary h3{margin:4px 0 0}details.item:not([open])>summary h3::after{content:" +";color:var(--cian)}
+details.item[open]>summary{margin-bottom:10px}details.nota>summary .meta{display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--muted)}
+.fuentes-caja ul{max-height:340px;overflow:auto;list-style:none;margin:10px 0 0;padding:0 8px 0 0;border-top:1px solid var(--borde)}
+.fuentes-caja li{padding:8px 0;border-bottom:1px solid var(--borde);font-size:14px}.fuentes-caja li span{color:var(--muted)}

@@ -5,7 +5,7 @@ export function validarPost(post,fuente,prohibidas=[]){
   if(typeof post.descripcion!=='string'||!post.descripcion.trim()||post.descripcion.length>12000)throw Error('La descripción está vacía o excede el límite');
   const evidence=fuente.titulo+' '+fuente.resumen;
   for(const [index,l] of post.laminas.entries()){
-    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string'&&l[k].length<=4000)||!l.titulo.trim()||!l.alt.trim())throw Error('Faltan título o texto alternativo');
+    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string'&&l[k].length<=4000)||!(l.titulo.trim()||l.cuerpo.trim())||!l.alt.trim()||(index===0&&!l.titulo.trim()))throw Error('Faltan título o texto alternativo');
     const count=s=>s.trim().split(/\s+/).filter(Boolean).length;
     if(count(l.titulo+' '+l.cuerpo)>PALABRAS_LAMINA || (index===0&&count(l.titulo)>12))throw Error('Una lámina supera el límite de palabras');
     validarTexto([l.titulo,l.cuerpo,l.fuente,l.alt].join(' '),evidence,fuente.url,prohibidas);

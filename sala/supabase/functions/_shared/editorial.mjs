@@ -73,7 +73,7 @@ export function problemasBorrador(result,evidence,sourceUrl,prohibidas,recientes
   if(!Array.isArray(result.ganchos)||result.ganchos.length<3||result.ganchos.length>5)p.push('El borrador debe ofrecer entre 3 y 5 ganchos');
   if(typeof result.descripcion!=='string'||!result.descripcion.trim())p.push('Falta la descripción');
   for(const [i,l] of result.laminas.entries()){
-    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string')||!l.titulo.trim()||!l.alt.trim()){p.push(`Lámina ${i+1}: faltan título o texto alternativo`);continue}
+    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string')||!(l.titulo.trim()||l.cuerpo.trim())||!l.alt.trim()||(i===0&&!l.titulo.trim())){p.push(`Lámina ${i+1}: ${i===0?'falta el gancho como título o el':'falta texto o'} texto alternativo`);continue}
     const n=words(l.titulo+' '+l.cuerpo);
     if(n>PALABRAS_LAMINA)p.push(`Lámina ${i+1}: tiene ${n} palabras y el máximo es ${PALABRAS_LAMINA}`);
     if(l.tipo!==undefined&&!TIPOS_LAMINA.includes(l.tipo))p.push(`Lámina ${i+1}: tipo "${l.tipo}" no válido; usa uno de: ${TIPOS_LAMINA.join(', ')}`);
