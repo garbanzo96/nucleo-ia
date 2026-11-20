@@ -32,6 +32,12 @@ class Ejecucion(unittest.TestCase):
         self.assertEqual((count,total,failed),(1,1,0)); self.assertEqual(db.insertadas[0]['titulo'],'Nuevo')
         self.assertEqual((db.insertadas[0]['hallazgo'],db.insertadas[0]['texto_fuente']),('no consta','sin texto accesible'))
 
+    def test_academico_respeta_el_tope_de_tiempo(self):
+        db=DB(); works=[{'titulo':f'P{i}','doi':f'10.1/p{i}'} for i in range(5)]; tiempos=iter([0,0]+[10_000]*20)
+        with patch('ejecutar.academico.buscar',return_value=works), patch('ejecutar.academico.buscar_semantic_scholar',return_value=[]), patch('ejecutar.academico.buscar_crossref',return_value=[]), patch('ejecutar.academico.buscar_pubmed',return_value=[]), patch('ejecutar.academico.buscar_arxiv',return_value=[]), patch('ejecutar.radar.disponible',return_value=True) as disp:
+            count,_,_=academicos(db,['IA'],reloj=lambda:next(tiempos))
+        self.assertEqual(count,0); disp.assert_not_called()
+
     def test_catalogos_no_son_fuente_primaria(self):
         self.assertFalse(es_primaria('https://openalex.org/W123'))
         self.assertFalse(es_primaria('https://pubmed.ncbi.nlm.nih.gov/123'))

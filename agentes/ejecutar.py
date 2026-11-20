@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlsplit
 from urllib.request import Request, urlopen
@@ -127,25 +128,33 @@ def noticias(db, fuentes, seen, limit=0, desde=None, vistas_primarias=()):
     return len(output),len(selected),fallos
 
 
-def academicos(db, queries, expansion=(), ficha_modelo=None):
+def academicos(db, queries, expansion=(), ficha_modelo=None, minutos=15, reloj=time.monotonic):
+    hasta=reloj()+minutos*60  # el workflow corta a los 35 min; sin tope, revisar los papers de a uno nunca terminaba
     existing=db.rows('papers','doi,url'); seen_doi={str(p['doi']).lower() for p in existing if p.get('doi')}; seen_url={p['url'] for p in existing if p.get('url')}; output=[]; fallos=0
     works=list(expansion)
     for term in queries:
+        if reloj()>hasta: break
         consultado=False
         for search in (academico.buscar,academico.buscar_semantic_scholar,academico.buscar_crossref,academico.buscar_pubmed,academico.buscar_arxiv):
             try: works.extend(search(term)); consultado=True
             except (HTTPError,URLError,ValueError,TimeoutError,OSError,ParseError): continue
         if not consultado: fallos+=1
+    nuevos=[]
     for work in works:
         doi=(work.get('doi') or '').lower()
         url = 'https://doi.org/' + doi if doi else work.get('url')
-        if not url or (doi and doi in seen_doi) or url in seen_url or not radar.disponible(url): continue
+        if not url or (doi and doi in seen_doi) or url in seen_url: continue
         work['url'] = url
-        if work.get('url_abierta') and not radar.disponible(work['url_abierta']): work['url_abierta'] = None
         if doi: seen_doi.add(doi)
         seen_url.add(url)
-        academico.completar_ficha(work, **(ficha_modelo or {}))
-        output.append(work)
+        nuevos.append(work)
+    print(f'Académico: {len(nuevos)} trabajos nuevos por revisar.', flush=True)
+    def revisar(work):  # lo que no alcanza a revisarse queda para la próxima corrida
+        if reloj()>hasta or not radar.disponible(work['url']): return None
+        if work.get('url_abierta') and not radar.disponible(work['url_abierta']): work['url_abierta'] = None
+        return academico.completar_ficha(work, **(ficha_modelo or {}))
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        output=[w for w in pool.map(revisar, nuevos) if w]
     for work,value in zip(output,embeddings.vectores([w['titulo']+' '+(w.get('abstract') or '') for w in output])):
         if value is not None: work['embedding']=value  # sin vector queda para búsqueda textual
     for work in output: work.setdefault('embedding',None)

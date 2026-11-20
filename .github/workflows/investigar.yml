@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
+      PYTHONUNBUFFERED: '1'  # que el log muestre el avance aunque la corrida se corte
       SALA_API: https://mntbswehkqcndbbmnwmn.supabase.co/functions/v1/radar_api
       EVENTO: ${{ github.event_name }}
       TIPO_DISPATCH: ${{ github.event.client_payload.tipo }}
