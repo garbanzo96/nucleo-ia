@@ -45,14 +45,31 @@
 /* Fuentes: ventana pequeña con scroll */
 .fuentes-ventana{height:200px;overflow-y:auto;list-style:none;margin:8px 0 0;padding:0 12px;border:1px solid var(--borde);border-radius:12px;background:var(--panel)}
 .fuentes-ventana li{padding:7px 0;border-bottom:1px solid var(--borde);font-size:13px}.fuentes-ventana li:last-child{border-bottom:0}.fuentes-ventana li span{color:var(--muted)}
-/* Foto: portada, panorámicas de a dos láminas, fotos propias y cierre atenuado */
+/* Foto: portada, panorámicas de a dos láminas y cierre atenuado */
 .slide:not([data-foto]) :is(.slide-photo,.slide-veil,.slide-top,.slide-bottom){display:none}
 .slide-photo{right:auto;width:1080px}
 .slide[data-mitad] .slide-photo{width:2160px}
 .slide[data-mitad=der] .slide-photo{left:-1080px}
 .slide[data-foto=cierre] .slide-photo{filter:blur(10px);transform:scale(1.08)}
 .slide[data-foto=cierre] .slide-veil{background:rgba(0,0,0,.72)!important}
-.slide:is([data-foto=portada],[data-foto=interior],[data-foto=propia]) .slide-content>div:nth-child(2){margin-top:auto;margin-bottom:56px}
+.slide:is([data-foto=portada],[data-foto=interior]) .slide-content>div:nth-child(2){margin-top:auto;margin-bottom:56px}
 .slide-content footer img{mix-blend-mode:lighten}
-.slide:is([data-foto=interior],[data-foto=propia]) .slide-bottom{background:linear-gradient(to bottom,transparent,rgba(0,0,0,.76) 300px,rgba(0,0,0,.95))}
+.slide[data-foto=interior] .slide-bottom{background:linear-gradient(to bottom,transparent,rgba(0,0,0,.76) 300px,rgba(0,0,0,.95))}
 .slide[data-foto][data-tipo=implicancias] .slide-content>div:nth-child(2),.slide[data-foto][data-tipo=limites] .slide-content>div:nth-child(2){background:rgba(11,23,37,.72)}
+/* Flechas a los costados de la lámina; en el celular, sobre la foto y lejos del texto. Van fuera de #preview: no salen en la imagen exportada */
+.marco{position:relative}
+.flecha{position:absolute;top:50%;translate:0 -50%;z-index:2;width:48px;height:48px;min-height:0;padding:0;display:grid;place-items:center;border-radius:50%}
+.flecha[hidden]{display:none}
+#anterior{left:0}#siguiente{right:0}
+/* La lámina queda a la vista mientras se baja por los campos */
+@media(min-width:801px){.marco{padding:0 60px;max-width:calc((100dvh - 150px)*.8 + 120px);margin:0 auto}.vista-fija{position:sticky;top:16px}}
+@media(max-width:800px){.flecha{top:20%;background:rgba(4,10,20,.78)}#anterior{left:10px}#siguiente{right:10px}}
+.minis{display:flex;flex-wrap:wrap;gap:8px}
+.minis button{position:relative;width:48px;height:60px;min-height:0;padding:0;border:2px solid var(--borde);border-radius:8px;background:#0b1725 center/cover;background-blend-mode:normal;font:600 15px var(--titulo);color:#fff;text-shadow:0 1px 3px #000,0 0 8px #000;opacity:.75}
+.minis button:hover{opacity:1}.minis button:disabled{opacity:.35}
+.minis button[aria-pressed=true]{opacity:1;border-color:var(--cian);box-shadow:inset 0 0 0 1px var(--cian)}
+.minis button.viendo::after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:3px;border-radius:2px;background:#fff}
+.minis.fotos button{width:76px;opacity:1}
+.minis+.hint{margin:8px 0 0}.rotulo-fotos{display:block;margin-bottom:8px;font-size:14px;font-weight:600}
+.nav-foto{display:none;align-items:center;gap:12px;margin-bottom:12px}.nav-foto button{display:grid;place-items:center;width:48px;padding:0}
+@media(max-width:800px){.nav-foto{display:flex}}

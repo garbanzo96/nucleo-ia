@@ -4,8 +4,9 @@ export function validarFondo(raw){
   if(!Number.isInteger(encuadre)||encuadre<0||encuadre>100||!Number.isInteger(oscurecimiento)||oscurecimiento<0||oscurecimiento>85)throw Error('Ajustes de imagen inválidos');
   return {imagen_privada:path,encuadre,oscurecimiento};
 }
-// Foto propia de una lámina: mismas reglas que la general; sin foto no guarda ajustes.
+// Foto propia de una lámina: mismas reglas que la general. sin_foto: no muestra ni la general.
 export function fondoLamina(l){
+  if(l.sin_foto===true)return {sin_foto:true};
   if(!l.imagen)return {};
   const {imagen_privada,encuadre,oscurecimiento}=validarFondo({imagen_privada:l.imagen,encuadre:l.encuadre,oscurecimiento:l.oscurecimiento});
   return {imagen:imagen_privada,encuadre,oscurecimiento};

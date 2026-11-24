@@ -170,21 +170,37 @@ test('reescribir conserva el tipo de lámina y no se pasa de 10 láminas',async(
  const {w}=setup(),d=w.document;w.__test.getPost().laminas[0].tipo='dato';await d.getElementById('reescribir-lamina').onclick();assert.equal(w.__test.getPost().laminas[0].tipo,'dato');
  for(let i=0;i<8;i++)d.getElementById('agregar').onclick();assert.equal(w.__test.getPost().laminas.length,10);assert.match(d.getElementById('notice').textContent,/10 láminas/);
 });
-test('la foto general llega a todas las láminas y una lámina puede tener la suya',async()=>{
- const {File}=require('node:buffer'),{w,calls,uploads}=setup(),d=w.document;let n=0;w.URL.createObjectURL=()=>'blob:'+(++n);
- const pegar=async()=>{Object.defineProperty(d.getElementById('imagen'),'files',{value:[new File([new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,0])],'f.png',{type:'image/png'})],configurable:true});await d.getElementById('imagen').onchange()};
- const ir=i=>{while(d.getElementById('contador').textContent.split(' ')[0]!=='1')d.getElementById('anterior').onclick();for(let k=0;k<i;k++)d.getElementById('siguiente').onclick()};
- const foto=()=>d.querySelector('.slide-photo').style.backgroundImage;
- await pegar();for(let i=0;i<6;i++){ir(i);assert.match(foto(),/blob:1/,'lámina '+(i+1));assert.ok(d.getElementById('preview').dataset.foto)}
- ir(3);assert.equal(d.getElementById('imagen-destino').value,'lamina');await pegar();
- d.getElementById('encuadre').value='10';d.getElementById('encuadre').dispatchEvent(new w.Event('input'));
- assert.match(foto(),/blob:2/);assert.equal(d.getElementById('preview').dataset.foto,'propia');
- ir(2);assert.match(foto(),/blob:1/);assert.equal(d.getElementById('preview').dataset.mitad,undefined);assert.equal(d.getElementById('encuadre').value,'50');
- ir(0);assert.equal(d.getElementById('preview').dataset.mitad,'izq');
- await d.getElementById('guardar-post').onclick();const saved=calls.find(x=>x.name==='guardar_post').body;
+test('la foto general llega a todas las láminas y cada foto va a las láminas que se elijan',async()=>{
+ const {File}=require('node:buffer'),{w,calls,uploads}=setup(),d=w.document,$=id=>d.getElementById(id);let n=0;w.URL.createObjectURL=()=>'blob:'+(++n);
+ const pegar=async()=>{Object.defineProperty($('imagen'),'files',{value:[new File([new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,0])],'f.png',{type:'image/png'})],configurable:true});await $('imagen').onchange()};
+ const ir=i=>{for(let k=0;k<10;k++)$('anterior').onclick();for(let k=0;k<i;k++)$('siguiente').onclick()};
+ const modo=v=>{$('imagen-destino').value=v;$('imagen-destino').onchange()};
+ const mapa=()=>[...$('foto-laminas').children].map(b=>b.style.backgroundImage.match(/blob:(\d)/)?.[1]||'-').join('');
+ const marcadas=()=>[...$('foto-laminas').children].map(b=>b.getAttribute('aria-pressed')==='true'?'x':'.').join('');
+ const prev=()=>$('preview').dataset;
+ assert.equal($('imagen-destino').value,'todas');await pegar();assert.equal(mapa(),'111111');
+ for(let i=0;i<6;i++){ir(i);assert.match(d.querySelector('.slide-photo').style.backgroundImage,/blob:1/);assert.ok(prev().foto)}
+ assert.equal($('siguiente').hidden,true);assert.equal($('anterior').hidden,false);
+ ir(3);assert.equal($('imagen-destino').value,'esta');assert.equal(marcadas(),'...x..');await pegar();assert.equal(mapa(),'111211');
+ $('encuadre').value='10';$('encuadre').dispatchEvent(new w.Event('input'));
+ ir(2);assert.equal(prev().mitad,undefined);assert.equal($('encuadre').value,'50');ir(0);assert.equal(prev().mitad,'izq');
+ await $('guardar-post').onclick();const saved=calls.find(x=>x.name==='guardar_post').body;
  assert.equal(uploads.length,2);assert.deepEqual([saved.imagen_privada,saved.laminas[3].imagen],uploads);assert.equal(saved.laminas[3].encuadre,10);assert.equal(saved.laminas[2].imagen,undefined);
- await d.getElementById('guardar-post').onclick();assert.equal(uploads.length,2);
- ir(3);d.getElementById('quitar-imagen').onclick();assert.match(foto(),/blob:1/);assert.equal(w.__test.getPost().laminas[3].imagen,undefined);assert.ok(w.__test.getPost().imagen_privada);
+ await $('guardar-post').onclick();assert.equal(uploads.length,2);
+ // De aquí en adelante: foto nueva desde la lámina 5; seguidas, se reparten mitad y mitad.
+ ir(4);modo('adelante');assert.equal(marcadas(),'....xx');await pegar();assert.equal(mapa(),'111233');assert.equal(prev().mitad,'izq');ir(5);assert.equal(prev().mitad,'der');
+ $('encuadre').value='80';$('encuadre').dispatchEvent(new w.Event('input'));assert.equal(w.__test.getPost().laminas[4].encuadre,80);
+ // Esta y otra: elegir láminas sueltas y poner una foto que ya está en el borrador.
+ ir(1);$('foto-laminas').children[4].onclick();assert.equal($('imagen-destino').value,'elegir');assert.equal(marcadas(),'.x..x.');ir(3);assert.equal(marcadas(),'.x..x.');
+ $('foto-usadas').children[1].onclick();assert.equal(mapa(),'121223');assert.equal(w.__test.getPost().laminas[1].encuadre,10);assert.match($('notice').textContent,/láminas 2 y 5/);
+ // Quitar deja la lámina sin foto, y la general se puede volver a poner.
+ ir(2);$('quitar-imagen').onclick();assert.equal(mapa(),'12-223');assert.equal(prev().foto,undefined);$('foto-usadas').children[0].onclick();assert.equal(mapa(),'121223');assert.equal(w.__test.getPost().laminas[2].imagen,undefined);
+ $('foto-laminas').children[2].onclick();await pegar();assert.match($('notice').textContent,/Marca al menos una/);
+ modo('todas');$('foto-usadas').children[2].onclick();assert.equal(mapa(),'333333');assert.ok(w.__test.getPost().laminas.every(l=>!l.imagen));
+});
+test('las flechas del teclado cambian de lámina salvo al escribir',()=>{
+ const {w}=setup(),d=w.document;d.getElementById('app').hidden=false;d.getElementById('editor').hidden=false;const tecla=(el,key)=>el.dispatchEvent(new w.KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));
+ tecla(d.body,'ArrowRight');assert.equal(d.getElementById('contador').textContent,'2 / 6');tecla(d.getElementById('titulo'),'ArrowRight');assert.equal(d.getElementById('contador').textContent,'2 / 6');tecla(d.body,'ArrowLeft');assert.equal(d.getElementById('contador').textContent,'1 / 6');
 });
 test('el respaldo local no guarda referencias a fotos que no se subieron',async()=>{
  const {File}=require('node:buffer'),{w}=setup(),d=w.document;

@@ -27,5 +27,6 @@ test('postEntrada conserva la foto propia de una lámina y rechaza rutas inváli
  const l=base.laminas[0],imagen='fondos/11111111-1111-4111-8111-111111111111.png';
  const s=m.exports.postEntrada({...base,laminas:[{...l,imagen,encuadre:10},{...l,encuadre:10}]});
  assert.deepEqual(s.laminas[0],{...l,imagen,encuadre:10,oscurecimiento:20});assert.deepEqual(s.laminas[1],l);
+ assert.deepEqual(m.exports.postEntrada({...base,laminas:[{...l,sin_foto:true,imagen}]}).laminas[0],{...l,sin_foto:true});
  assert.throws(()=>m.exports.postEntrada({...base,laminas:[{...l,imagen:'https://x.cl/a.png'}]}),/Imagen/);
 });
