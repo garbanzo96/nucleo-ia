@@ -170,3 +170,26 @@ test('reescribir conserva el tipo de lámina y no se pasa de 10 láminas',async(
  const {w}=setup(),d=w.document;w.__test.getPost().laminas[0].tipo='dato';await d.getElementById('reescribir-lamina').onclick();assert.equal(w.__test.getPost().laminas[0].tipo,'dato');
  for(let i=0;i<8;i++)d.getElementById('agregar').onclick();assert.equal(w.__test.getPost().laminas.length,10);assert.match(d.getElementById('notice').textContent,/10 láminas/);
 });
+test('la foto general llega a todas las láminas y una lámina puede tener la suya',async()=>{
+ const {File}=require('node:buffer'),{w,calls,uploads}=setup(),d=w.document;let n=0;w.URL.createObjectURL=()=>'blob:'+(++n);
+ const pegar=async()=>{Object.defineProperty(d.getElementById('imagen'),'files',{value:[new File([new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,0])],'f.png',{type:'image/png'})],configurable:true});await d.getElementById('imagen').onchange()};
+ const ir=i=>{while(d.getElementById('contador').textContent.split(' ')[0]!=='1')d.getElementById('anterior').onclick();for(let k=0;k<i;k++)d.getElementById('siguiente').onclick()};
+ const foto=()=>d.querySelector('.slide-photo').style.backgroundImage;
+ await pegar();for(let i=0;i<6;i++){ir(i);assert.match(foto(),/blob:1/,'lámina '+(i+1));assert.ok(d.getElementById('preview').dataset.foto)}
+ ir(3);assert.equal(d.getElementById('imagen-destino').value,'lamina');await pegar();
+ d.getElementById('encuadre').value='10';d.getElementById('encuadre').dispatchEvent(new w.Event('input'));
+ assert.match(foto(),/blob:2/);assert.equal(d.getElementById('preview').dataset.foto,'propia');
+ ir(2);assert.match(foto(),/blob:1/);assert.equal(d.getElementById('preview').dataset.mitad,undefined);assert.equal(d.getElementById('encuadre').value,'50');
+ ir(0);assert.equal(d.getElementById('preview').dataset.mitad,'izq');
+ await d.getElementById('guardar-post').onclick();const saved=calls.find(x=>x.name==='guardar_post').body;
+ assert.equal(uploads.length,2);assert.deepEqual([saved.imagen_privada,saved.laminas[3].imagen],uploads);assert.equal(saved.laminas[3].encuadre,10);assert.equal(saved.laminas[2].imagen,undefined);
+ await d.getElementById('guardar-post').onclick();assert.equal(uploads.length,2);
+ ir(3);d.getElementById('quitar-imagen').onclick();assert.match(foto(),/blob:1/);assert.equal(w.__test.getPost().laminas[3].imagen,undefined);assert.ok(w.__test.getPost().imagen_privada);
+});
+test('el respaldo local no guarda referencias a fotos que no se subieron',async()=>{
+ const {File}=require('node:buffer'),{w}=setup(),d=w.document;
+ Object.defineProperty(d.getElementById('imagen'),'files',{value:[new File([new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,0])],'f.png',{type:'image/png'})],configurable:true});
+ await d.getElementById('imagen').onchange();assert.ok(w.__test.getPost().imagen_privada);
+ const r=()=>JSON.parse(w.localStorage.getItem('nucleo-sala-respaldo')).post;assert.equal(r().imagen_privada,null);
+ await d.getElementById('guardar-post').onclick();d.getElementById('credito').oninput();assert.match(r().imagen_privada,/^fondos/);
+});

@@ -16,7 +16,8 @@ export async function crearNota(post:any,fuente:any,imagenes:Uint8Array[],alInte
  if(idxResponse.status!==404){if(!idxResponse.ok)throw Error('No se pudo leer el índice');const obj=await idxResponse.json();if(obj.encoding!=='base64'||typeof obj.content!=='string'||obj.content.length>1_000_000)throw Error('Índice inválido');index=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(obj.content.replace(/\s/g,'')),c=>c.charCodeAt(0))));}
  if(!Array.isArray(index)||index.some(n=>!n||typeof n.slug!=='string'||!/^[a-z0-9-]+$/.test(n.slug)||typeof n.titulo!=='string'||n.titulo.length>400)||index.some(n=>n.slug===post.id))throw Error('Índice inválido o nota ya existente');
  index.unshift({slug:post.id,titulo:post.laminas[0].titulo});
- const nota={titulo:post.laminas[0].titulo,descripcion:post.descripcion,laminas:post.laminas,credito_imagen:post.credito_imagen,referencias:[{titulo:fuente.titulo,autores:fuente.autores,fecha:fuente.fecha,doi:fuente.doi,url:fuente.url}],post_id:post.id,revision:post.revision};
+ const nota={titulo:post.laminas[0].titulo,descripcion:post.descripcion,// La nota es pública: no lleva las rutas de las fotos privadas.
+  laminas:post.laminas.map(({imagen,encuadre,oscurecimiento,...l}:any)=>l),credito_imagen:post.credito_imagen,referencias:[{titulo:fuente.titulo,autores:fuente.autores,fecha:fuente.fecha,doi:fuente.doi,url:fuente.url}],post_id:post.id,revision:post.revision};
  const encoder=new TextEncoder(),files:{path:string,content:Uint8Array}[]=[
   {path:'notas/index.json',content:encoder.encode(JSON.stringify(index,null,2)+'\n')},
   {path:'notas/index.html',content:encoder.encode(indiceNotas(index))},

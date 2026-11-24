@@ -23,3 +23,9 @@ test('postEntrada conserva la imagen privada y sus ajustes; rechaza rutas invál
  const stored=m.exports.postEntrada(input);assert.equal(stored.imagen_privada,input.imagen_privada);assert.equal(stored.encuadre,32);assert.equal(stored.oscurecimiento,44);
  assert.throws(()=>m.exports.postEntrada({...input,imagen_privada:'../publica.png'},fuente,[]));
 });
+test('postEntrada conserva la foto propia de una lámina y rechaza rutas inválidas',()=>{
+ const l=base.laminas[0],imagen='fondos/11111111-1111-4111-8111-111111111111.png';
+ const s=m.exports.postEntrada({...base,laminas:[{...l,imagen,encuadre:10},{...l,encuadre:10}]});
+ assert.deepEqual(s.laminas[0],{...l,imagen,encuadre:10,oscurecimiento:20});assert.deepEqual(s.laminas[1],l);
+ assert.throws(()=>m.exports.postEntrada({...base,laminas:[{...l,imagen:'https://x.cl/a.png'}]}),/Imagen/);
+});

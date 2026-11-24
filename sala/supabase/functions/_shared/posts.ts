@@ -1,7 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.49.8';
 import { TIPOS_LAMINA, tiposGancho } from './editorial.mjs';
 import { validarCuenta } from './publicacion.mjs';
-import { validarFondo } from './fondo.mjs';
+import { fondoLamina, validarFondo } from './fondo.mjs';
 export function adminClient(){
   const url=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if(!url||!key)throw Error('Falta configurar el servidor');
@@ -28,7 +28,7 @@ export function postEntrada(raw:any){
   const idea=raw.sugerencia_imagen,claves=['mostrar','busqueda','prompt_ia'];
   const sugerencia_imagen=idea&&typeof idea==='object'&&claves.every(k=>texto(idea[k]??'',1500))?Object.fromEntries(claves.map(k=>[k,idea[k]??''])):null;
   const checks=raw.checklist||{};
-  return {ganchos,sugerencia_imagen,...validarFondo(raw),formato:raw.formato,tipo_gancho:raw.tipo_gancho,laminas:raw.laminas.map((l:any)=>({...(TIPOS_LAMINA.includes(l.tipo)?{tipo:l.tipo}:{}),titulo:l.titulo,cuerpo:l.cuerpo,fuente:l.fuente,alt:l.alt})),descripcion:raw.descripcion,credito_imagen:raw.credito_imagen??'',checklist:Object.fromEntries(['fuente_leida','cifras_verificadas','permiso_imagen','credito_imagen','sin_marcadores'].map(k=>[k,checks[k]===true])),fuente_primaria:fuente||null};
+  return {ganchos,sugerencia_imagen,...validarFondo(raw),formato:raw.formato,tipo_gancho:raw.tipo_gancho,laminas:raw.laminas.map((l:any)=>({...(TIPOS_LAMINA.includes(l.tipo)?{tipo:l.tipo}:{}),titulo:l.titulo,cuerpo:l.cuerpo,fuente:l.fuente,alt:l.alt,...fondoLamina(l)})),descripcion:raw.descripcion,credito_imagen:raw.credito_imagen??'',checklist:Object.fromEntries(['fuente_leida','cifras_verificadas','permiso_imagen','credito_imagen','sin_marcadores'].map(k=>[k,checks[k]===true])),fuente_primaria:fuente||null};
 }
 export async function datosPost(db:any,id:string){
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id||''))throw Error('Post inválido');
