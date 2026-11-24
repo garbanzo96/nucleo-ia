@@ -1,18 +1,19 @@
-import {validarTexto,tiposGancho,PALABRAS_LAMINA} from './editorial.mjs';
+import {validarTexto,tiposGancho,PALABRAS_LAMINA,evidenciaDe} from './editorial.mjs';
 export function validarPost(post,fuente,prohibidas=[]){
   if(!post||typeof post!=='object'||typeof post.formato!=='string'||!tiposGancho.includes(post.tipo_gancho))throw Error('Formato o gancho inválido');
   if(!Array.isArray(post.laminas)||post.laminas.length<6||post.laminas.length>10)throw Error('Se requieren de 6 a 10 láminas');
   if(typeof post.descripcion!=='string'||!post.descripcion.trim()||post.descripcion.length>12000)throw Error('La descripción está vacía o excede el límite');
-  const evidence=fuente.titulo+' '+fuente.resumen;
-  for(const [index,l] of post.laminas.entries()){
-    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string'&&l[k].length<=4000)||!(l.titulo.trim()||l.cuerpo.trim())||!l.alt.trim()||(index===0&&!l.titulo.trim()))throw Error('Faltan título o texto alternativo');
+  const evidence=evidenciaDe(fuente),problemas=[],intentar=(donde,f)=>{try{f()}catch(e){problemas.push(donde+e.message)}};
+  for(const [index,l] of post.laminas.entries())intentar(`Lámina ${index+1}: `,()=>{
+    if(!l||!['titulo','cuerpo','fuente','alt'].every(k=>typeof l[k]==='string'&&l[k].length<=4000)||!(l.titulo.trim()||l.cuerpo.trim())||!l.alt.trim()||(index===0&&!l.titulo.trim()))throw Error('falta texto, texto alternativo o, en la 1, el gancho como título');
     const count=s=>s.trim().split(/\s+/).filter(Boolean).length;
-    if(count(l.titulo+' '+l.cuerpo)>PALABRAS_LAMINA || (index===0&&count(l.titulo)>12))throw Error('Una lámina supera el límite de palabras');
+    if(count(l.titulo+' '+l.cuerpo)>PALABRAS_LAMINA || (index===0&&count(l.titulo)>12))throw Error(`supera el límite de ${PALABRAS_LAMINA} palabras, o de 12 en el gancho`);
     validarTexto([l.titulo,l.cuerpo,l.fuente,l.alt].join(' '),evidence,fuente.url,prohibidas);
-  }
-  validarTexto(post.descripcion,evidence,fuente.url,prohibidas);
+  });
+  intentar('Descripción: ',()=>validarTexto(post.descripcion,evidence,fuente.url,prohibidas));
   if(typeof post.credito_imagen!=='string'||post.credito_imagen.length>500)throw Error('Crédito de imagen inválido');
-  validarTexto(post.credito_imagen,evidence+' '+post.credito_imagen,fuente.url,prohibidas);
+  intentar('Crédito de la foto: ',()=>validarTexto(post.credito_imagen,evidence+' '+post.credito_imagen,fuente.url,prohibidas));
+  if(problemas.length)throw Error(problemas.slice(0,6).join(' · '));
   return true;
 }
 export function validarCuenta(cuenta){if(typeof cuenta!=='string'||!/^@[a-z0-9._]{1,30}$/i.test(cuenta))throw Error('Falta configurar la cuenta de Instagram');return cuenta}
@@ -39,11 +40,11 @@ export function leerJpeg(base64){
 }
 export async function sha256(data){const hash=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash),n=>n.toString(16).padStart(2,'0')).join('')}
 export async function huellaPost(p){return sha256(new TextEncoder().encode(JSON.stringify({formato:p.formato,tipo_gancho:p.tipo_gancho,laminas:p.laminas,descripcion:p.descripcion,credito_imagen:p.credito_imagen,checklist:p.checklist,fuente_primaria:p.fuente_primaria,imagen_privada:p.imagen_privada,encuadre:p.encuadre,oscurecimiento:p.oscurecimiento})))}
-export async function huellaFuente(f){return sha256(new TextEncoder().encode(JSON.stringify(f)))}
+export async function huellaFuente(f){return sha256(new TextEncoder().encode(JSON.stringify(f.tipo==='prensa'?{url:f.url,titulo:f.titulo}:f)))}
 export function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 export function paginaNota(post,fuente,slug){
-  // Un documento oficial puede no declarar fecha; se cita como «s. f.» en vez de inventarla.
-  if(!fuente.autores?.length||(!/^\d{4}-\d\d-\d\d/.test(fuente.fecha||'')&&fuente.tipo!=='oficial'))throw Error('Faltan autores o fecha de la fuente');
+  // Una página oficial o de prensa puede no declarar fecha; se cita como «s. f.» en vez de inventarla.
+  if(!fuente.autores?.length||(!/^\d{4}-\d\d-\d\d/.test(fuente.fecha||'')&&!['oficial','prensa'].includes(fuente.tipo)))throw Error('Faltan autores o fecha de la fuente');
   const referencia=`${fuente.autores.join(', ')}. ${fuente.titulo}. ${fuente.fecha?fuente.fecha.slice(0,4):'s. f.'}. ${fuente.origen||'arXiv'}. ${fuente.doi?'DOI: '+fuente.doi+'. ':''}${fuente.url}`;
   const slides=post.laminas.map((l,i)=>`<figure><img src="./lamina-${String(i+1).padStart(2,'0')}.jpg" alt="${esc(l.alt)}"><figcaption><h2>${esc(l.titulo)}</h2><p>${esc(l.cuerpo)}</p><small>${esc(l.fuente)}</small></figcaption></figure>`).join('');
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(post.laminas[0].titulo)} · Núcleo IA</title><meta name="description" content="${esc(post.descripcion.slice(0,160))}"><link rel="stylesheet" href="../../styles.css"><style>main{max-width:850px;margin:4rem auto;padding:0 1.5rem}figure{margin:2rem 0}figure img{max-width:540px}figcaption{padding:1rem 0}p{white-space:pre-wrap}small{color:#a8b5c7}</style></head><body><main><p><a href="../">Notas</a></p><h1>${esc(post.laminas[0].titulo)}</h1><p>${esc(post.descripcion)}</p>${slides}<h2>Fuente primaria</h2><p>${esc(referencia)}</p><p><a href="${esc(fuente.url)}">Leer la fuente ↗</a></p><p>Crédito de imagen: ${esc(post.credito_imagen)}</p></main></body></html>`;

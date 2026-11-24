@@ -280,6 +280,15 @@ def indexar_pendientes(db, limite=300):
     return count
 
 
+def cerrar_colgados(db, actual, horas=2):
+    """GitHub corta corridas sin avisar: sin esto quedan «en curso» para siempre en la sala."""
+    limite=datetime.now(timezone.utc)-timedelta(hours=horas)
+    for t in db.rows('trabajos','id,estado,creado_en'):
+        creado=fecha_parseada(t.get('creado_en'))
+        if t.get('estado') in ('pendiente','en_curso') and t.get('id')!=actual and creado and creado<limite:
+            db.update('trabajos',t['id'],{'estado':'error','detalle':'La corrida se cortó antes de terminar.','terminado_en':datetime.now(timezone.utc).isoformat()})
+
+
 def run(tipo, job_id=None, limite=0):
     if sala_api.activa():
         db=sala_api.SalaApi()  # GitHub Actions: sin secretos, con token OIDC
@@ -291,6 +300,7 @@ def run(tipo, job_id=None, limite=0):
     if not job_id:
         created=db.request('POST','trabajos',{'tipo':tipo,'estado':'pendiente','solicitado_por':'Programado'},'return=representation');job_id=created[0]['id']
     db.update('trabajos',job_id,{'estado':'en_curso'})
+    cerrar_colgados(db,job_id)
     try:
         detalle=[]
         if tipo in ('noticias','ambos'):

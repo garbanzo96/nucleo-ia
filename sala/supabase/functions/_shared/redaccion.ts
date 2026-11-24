@@ -1,5 +1,5 @@
 import { cargarFuente, contexto, exigirTexto, instrucciones, politica } from './servicio.ts';
-import { problemasBorrador, tiposGancho } from './editorial.mjs';
+import { problemasBorrador, tiposGancho, TIPOS_LAMINA, evidenciaDe } from './editorial.mjs';
 
 // Arnés de redacción: borrador (con la voz del Núcleo) → hasta dos correcciones con los problemas concretos
 // que encontró el código → verificación contra la fuente, que avisa pero no bloquea. Lo usan `redactar`
@@ -45,8 +45,6 @@ export async function preparar(db: any, body: any) {
   return { ctx, fuente, url, formato: f, gancho: g, tema };
 }
 type Prep = Awaited<ReturnType<typeof preparar>>;
-// La fecha de la fuente cuenta como evidencia: "Stanford, 2026" en el campo fuente no es una cifra inventada.
-const evidencia = (p: Prep) => [p.fuente.titulo, p.fuente.resumen, (p.fuente as any).fecha || '', (p.fuente as any).anio || ''].join(' ');
 
 export const ESQUEMA = { laminas: [{ tipo: 'gancho | hecho | contexto | dato | cita | implicancias | reflexion | limites | pregunta', titulo: '', cuerpo: '', fuente: '', alt: '' }], ganchos: [{ tipo: tiposGancho.join(' | '), texto: '' }], descripcion: '', sugerencia_imagen: { mostrar: '', busqueda: '', prompt_ia: '' } };
 
@@ -67,6 +65,12 @@ export function normalizar(r: any) {
   if (r && typeof r === 'object' && !Array.isArray(r.laminas)) { const v = Object.values(r).find((x: any) => x && typeof x === 'object' && Array.isArray(x.laminas)); if (v) r = v; }
   // Variantes frecuentes de los modelos: {tipo_gancho, gancho}, {type, text}.
   if (r && Array.isArray(r.ganchos)) r = { ...r, ganchos: r.ganchos.map((g: any) => g && typeof g === 'object' ? { tipo: g.tipo ?? g.tipo_gancho ?? g.type, texto: g.texto ?? g.gancho ?? g.text } : g) };
+  // La sala espera textos en todos los campos: lo que falte queda vacío y lo marca la revisión, no la pantalla.
+  const t = (x: unknown) => typeof x === 'string' ? x.trim() : typeof x === 'number' ? String(x) : '';
+  if (r && Array.isArray(r.laminas)) r = { ...r, laminas: r.laminas.filter((l: any) => l && typeof l === 'object').slice(0, 10).map((l: any, i: number) => {
+    const tipo = TIPOS_LAMINA.includes(l.tipo) ? l.tipo : i === 0 ? 'gancho' : 'contexto';
+    return { tipo, titulo: t(l.titulo), cuerpo: t(l.cuerpo), fuente: t(l.fuente), alt: t(l.alt) || [t(l.titulo), t(l.cuerpo)].filter(Boolean).join('. ') };
+  }) };
   return r;
 }
 
@@ -90,7 +94,7 @@ export function aplicarGanchos(p: Prep, borrador: any, r: any) {
 }
 
 export function problemas(p: Prep, borrador: unknown): string[] {
-  return problemasBorrador(borrador, evidencia(p), p.fuente.url, p.ctx.config.lista_negra, p.ctx.anteriores, p.formato, p.gancho);
+  return problemasBorrador(borrador, evidenciaDe(p.fuente), p.fuente.url, p.ctx.config.lista_negra, p.ctx.anteriores, p.formato, p.gancho);
 }
 
 export function pasoCorregir(p: Prep, borrador: unknown, lista: string[]): Paso {
@@ -118,25 +122,46 @@ export function cerrar(p: Prep, borrador: any, informe: any) {
     advertencia: alertas.length ? `La verificación marcó ${alertas.length} punto(s) para revisar.` : 'La verificación no encontró problemas, pero una persona debe leer la fuente antes de aprobar.' };
 }
 
-// Corre el arnés completo con una función que llama a la IA y devuelve JSON.
-export async function redactarCompleto(p: Prep, correr: (paso: Paso) => Promise<any>, verificador: (paso: Paso) => Promise<any> = correr, ganchador: (paso: Paso) => Promise<any> = correr) {
-  // Una respuesta mal formada se pide de nuevo una vez antes de rendirse.
-  const llamar = async (f: (paso: Paso) => Promise<any>, paso: Paso) => {
-    try { return normalizar(await f(paso)); }
-    catch (e) { if (e instanceof Error && e.message.startsWith('El modelo no entregó')) return normalizar(await f(paso)); throw e; }
+// Supabase corta cada pedido a los 150 s. El borrador es lo único obligatorio: ganchos, correcciones y verificación
+// se hacen si alcanza el plazo, y lo que falte vuelve como alerta. Un borrador escrito nunca se pierde.
+export const PLAZO = 130_000;
+export type Correr = (paso: Paso, espera?: number, respaldo?: number) => Promise<any>;
+export async function redactarCompleto(p: Prep, correr: Correr, verificador: Correr = correr, ganchador: Correr = correr, hasta = Date.now() + PLAZO, ahora = Date.now) {
+  const queda = () => hasta - ahora(), valido = (b: any) => Array.isArray(b?.laminas) && b.laminas.length > 0;
+  const obligatorio = async () => {
+    const b = normalizar(await correr(pasoBorrador(p), Math.min(65_000, queda() * 0.6), Math.min(40_000, queda() * 0.35)));
+    if (!valido(b)) throw new Error('El modelo no entregó láminas. Intenta de nuevo.');
+    return b;
   };
-  let borrador = await llamar(correr, pasoBorrador(p));
+  let borrador: any;
+  // Una respuesta mal formada se pide de nuevo una vez antes de rendirse.
+  try { borrador = await obligatorio(); }
+  catch (e) { if (!(e instanceof Error && e.message.startsWith('El modelo no entregó')) || queda() < 45_000) throw e; borrador = await obligatorio(); }
+  const extra = async (f: Correr, paso: Paso, minimo: number) => {
+    if (queda() < minimo) return null;
+    try { return await f(paso, Math.min(45_000, queda() * 0.6), Math.min(25_000, queda() * 0.35)); } catch { return null; }
+  };
   const pg = pasoGanchos(p, borrador);
-  if (pg) { try { borrador = aplicarGanchos(p, borrador, await llamar(ganchador, pg)); } catch { /* el borrador sigue con sus propios ganchos */ } }
-  for (let i = 0; ; i++) {
-    const lista = problemas(p, borrador);
-    if (!lista.length) break;
-    if (i === MAX_CORRECCIONES) throw new Error('El borrador no cumplió las reglas después de dos correcciones: ' + lista.slice(0, 3).join('; '));
-    borrador = await llamar(correr, pasoCorregir(p, borrador, lista));
+  if (pg) { const r = await extra(ganchador, pg, 45_000); if (r) borrador = aplicarGanchos(p, borrador, normalizar(r)); }
+  let lista = problemas(p, borrador);
+  for (let i = 0; i < MAX_CORRECCIONES && lista.length; i++) {
+    const c = normalizar(await extra(correr, pasoCorregir(p, borrador, lista), 40_000));
+    if (!valido(c)) break;
+    const restantes = problemas(p, c);
+    if (restantes.length > lista.length) break; // la corrección empeoró: queda la versión anterior
+    borrador = c; lista = restantes;
   }
-  return cerrar(p, borrador, await llamar(verificador, pasoVerificar(p, borrador)));
+  const informe = await extra(verificador, pasoVerificar(p, borrador), 12_000);
+  const final = cerrar(p, borrador, informe ?? { laminas: [] });
+  if (informe === null) final.alertas.push('No se alcanzó a verificar contra la fuente: revisa cada dato antes de aprobar');
+  if (lista.length) final.alertas.push(...lista.slice(0, 6).map(x => 'Por corregir antes de aprobar: ' + x));
+  if (final.alertas.length) final.advertencia = `Borrador listo. Quedan ${final.alertas.length} punto(s) por revisar.`;
+  return final;
 }
 
-// Errores que se pueden mostrar tal cual: no contienen claves ni datos internos.
-export const erroresVisibles = ['Falta la fuente', 'Falta configurar la IA', 'La clave de IA', 'La cuenta de IA', 'Tu clave de IA', 'El proveedor de IA', 'Falta configurar el modelo', 'Solo se admiten enlaces', 'El enlace debe apuntar', 'Hay publicaciones sin fecha', 'Falta aplicar la migración', 'El borrador', 'No se pudo comprobar', 'La fuente es un PDF', 'La fuente', 'Ninguno de los', 'Destino de red', 'Tipo de contenido', 'Demasiadas redirecciones', 'El modelo no entregó', 'Lote inválido', 'No se pudo leer el radar', 'Enlace de fuente inválido', 'Redirección sin destino'];
-export const mensajeVisible = (err: unknown, otro: string) => { const m = err instanceof Error ? err.message : ''; return erroresVisibles.some(s => m.startsWith(s)) ? m : otro; };
+// Se muestran los errores que escribe la sala (Error simple, en español, sin claves ni datos internos).
+// Los de librerías, red o base de datos traen su propia clase y quedan ocultos tras el mensaje general.
+export const mensajeVisible = (err: unknown, otro: string) => {
+  if (err instanceof DOMException && err.name === 'TimeoutError') return 'La fuente o el servicio tardó demasiado en responder. Intenta de nuevo.';
+  return err instanceof Error && err.constructor === Error && err.message ? err.message : otro;
+};

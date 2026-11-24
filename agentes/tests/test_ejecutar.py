@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 from datetime import datetime, timezone
-from ejecutar import fecha_parseada, noticias, academicos, texto
+from ejecutar import fecha_parseada, noticias, academicos, texto, cerrar_colgados
 from nucleo import es_primaria
 
 class DB:
@@ -37,6 +37,14 @@ class Ejecucion(unittest.TestCase):
         with patch('ejecutar.academico.buscar',return_value=works), patch('ejecutar.academico.buscar_semantic_scholar',return_value=[]), patch('ejecutar.academico.buscar_crossref',return_value=[]), patch('ejecutar.academico.buscar_pubmed',return_value=[]), patch('ejecutar.academico.buscar_arxiv',return_value=[]), patch('ejecutar.radar.disponible',return_value=True) as disp:
             count,_,_=academicos(db,['IA'],reloj=lambda:next(tiempos))
         self.assertEqual(count,0); disp.assert_not_called()
+
+    def test_cierra_corridas_colgadas_sin_tocar_las_vigentes(self):
+        vieja,nueva='2026-01-01T00:00:00+00:00',datetime.now(timezone.utc).isoformat()
+        class Base:
+            cambios=[]
+            def rows(self,*_): return [{'id':'a','estado':'en_curso','creado_en':vieja},{'id':'b','estado':'en_curso','creado_en':nueva},{'id':'c','estado':'completado','creado_en':vieja},{'id':'yo','estado':'en_curso','creado_en':vieja}]
+            def update(self,tabla,i,v): self.cambios.append((i,v['estado']))
+        cerrar_colgados(Base(),'yo'); self.assertEqual(Base.cambios,[('a','error')])
 
     def test_catalogos_no_son_fuente_primaria(self):
         self.assertFalse(es_primaria('https://openalex.org/W123'))

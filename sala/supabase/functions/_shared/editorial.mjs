@@ -46,9 +46,11 @@ export function rotacion(formato,gancho,posts,n){
   if(!Number.isSafeInteger(n)||n<0||n>100) throw Error('La rotación no está configurada correctamente');
   if(posts.some(p=>!p.publicado_en))throw Error('Hay publicaciones sin fecha de publicación; completa sus fechas antes de generar');
   const recientes=[...posts].sort((a,b)=>b.publicado_en.localeCompare(a.publicado_en)).slice(0,n);
-  if(recientes.some(p=>p.formato===formato||p.tipo_gancho===gancho))throw Error('El formato o el gancho se usó recientemente');
+  if(recientes.some(p=>p.formato===formato||p.tipo_gancho===gancho))throw Error('El formato o el tipo de gancho se usó en una publicación reciente; elige otro en el editor');
   return recientes;
 }
+// Lo que cuenta como respaldo de una cifra. La fecha de la fuente también: "Senado, 2026" no es una cifra inventada.
+export const evidenciaDe=f=>[f.titulo,f.resumen,f.fecha||'',f.anio||''].join(' ');
 function words(s){return s.trim().split(/\s+/u).filter(Boolean).length}
 function textos(item){return [item.titulo,item.cuerpo,item.fuente,item.alt].filter(x=>typeof x==='string').join(' ')}
 export function validarTexto(text, evidence, sourceUrl, prohibidas=[]){

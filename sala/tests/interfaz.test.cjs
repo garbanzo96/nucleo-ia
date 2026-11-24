@@ -4,9 +4,9 @@ function setup(){
  const dom=new JSDOM(html,{url:'https://test.local/sala/',runScripts:'outside-only'}),w=dom.window;w.ResizeObserver=class{observe(){}};w.confirm=()=>true;w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};w.HTMLImageElement.prototype.decode=async()=>{};w.structuredClone=structuredClone;Object.defineProperty(w,'crypto',{value:webcrypto});w.sessionStorage.setItem('nucleo-sala-clave-ia','sk-ant-api03-'+'x'.repeat(40));
  const calls=[],uploads=[],files=new Map(),rows={candidatos:[],papers:[],trabajos:[],prompts:[{id:1,agente:'redactar',version:1,activa:true,contenido:'Original'}],config:[{clave:'cuenta_instagram',valor:'@nucleo'},{clave:'formatos',valor:['paper en simple']}],fuentes:[],posts:[]};
  const db={functions:{async invoke(name,{body,headers}){calls.push({name,body,headers});if(name==='guardar_post'){serverPost={...body,id:'11111111-1111-4111-8111-111111111111',revision:body.id?body.revision+1:1,estado:'borrador',aprobacion:null,imagenes_aprobadas:null};rows.posts=[serverPost];return {data:{id:serverPost.id,revision:serverPost.revision,estado:'borrador'}}}if(name==='aprobar_post'){serverPost={...serverPost,estado:'aprobado',aprobacion:{cuenta_instagram:'@nucleo'},imagenes_aprobadas:body.imagenes.map((_,i)=>({path:`aprobaciones/${serverPost.id}/${i}.jpg`,sha256:'0'.repeat(64)}))};rows.posts=[serverPost];return {data:{id:serverPost.id,revision:1,estado:'aprobado'}}}if(name==='redactar')return {data:{borrador:{laminas:[{titulo:'Nuevo',cuerpo:'texto',fuente:'arXiv',alt:'Descripción'}],descripcion:'Texto',ganchos:[{tipo:'hallazgo contraintuitivo',texto:'Una idea inesperada'},{tipo:'pregunta filosófica directa',texto:'Una pregunta'}],sugerencia_imagen:{mostrar:'Una persona leyendo',busqueda:'lectura',prompt_ia:'Openverse'}},advertencia:'Revisa la fuente.'}};if(name==='reescribir')return {data:{contenido:{titulo:'Reescrito',cuerpo:'texto',fuente:'arXiv',alt:'Descripción'},advertencia:'Revisa la fuente.'}};if(name==='expandir')return {data:{referencias:[{titulo:'<script>Referencia</script>',anio:2025,autores:['Investigadora'],doi:'10.1234/test',citas:3}],citas:[{titulo:'Trabajo posterior',anio:2026,autores:[],doi:null,citas:1}]}};if(name==='publicar_web')return {error:{context:{clone:()=>({json:async()=>({error:'La publicación web está desactivada'})})}}};return {data:{}}}},
- from(table){return {select(){return this},eq(){return this},single:async()=>({data:table==='config'?rows.config[0]:serverPost,error:null}),then(ok,fail){return Promise.resolve({data:rows[table],error:null}).then(ok,fail)}}},rpc:async(name,body)=>{calls.push({name,body});return {data:2,error:null}},storage:{from(){return {upload:async(path,file)=>{uploads.push(path);files.set(path,file);return {error:null}},download:async(path)=>({data:files.get(path)||{arrayBuffer:async()=>new Uint8Array([1,2,3]).buffer},error:null})}}}};
+ from(table){return {select(){return this},eq(){return this},in(){return this},order(){return this},limit(){return this},single:async()=>({data:table==='config'?rows.config[0]:serverPost,error:null}),then(ok,fail){return Promise.resolve({data:rows[table],error:null}).then(ok,fail)}}},rpc:async(name,body)=>{calls.push({name,body});return {data:2,error:null}},storage:{from(){return {upload:async(path,file)=>{uploads.push(path);files.set(path,file);return {error:null}},download:async(path)=>({data:files.get(path)||{arrayBuffer:async()=>new Uint8Array([1,2,3]).buffer},error:null})}}}};
  let serverPost=null;
- w.eval(source+'\nwindow.__test={setDb(x){db=x;usuario="Ana";config=[{clave:"cuenta_instagram",valor:"@nucleo"},{clave:"formatos",valor:["paper en simple"]}];renderConfig([])},setPost(x){post=x;dirty=true;current=0;fillEditor();syncControls()},prepareFake(){prepared=Array(post.laminas.length).fill("ZmFrZQ==");preparedVersion=visualVersion;preparedAccount=cuentaActual();syncControls()},getPost(){return post},load:refresh,images:imagenesAprobadas};');w.__test.setDb(db);
+ w.eval(source+'\nwindow.__test={setDb(x){db=x;usuario="Ana";config=[{clave:"cuenta_instagram",valor:"@nucleo"},{clave:"formatos",valor:["paper en simple"]}];renderConfig([])},setPost(x){post=x;dirty=true;current=0;fillEditor();syncControls()},prepareFake(){prepared=Array(post.laminas.length).fill("ZmFrZQ==");preparedVersion=visualVersion;preparedAccount=cuentaActual();syncControls()},getPost(){return post},load:refresh,recuperar:recuperarBorrador,images:imagenesAprobadas};');w.__test.setDb(db);
  const slide={titulo:'Una idea',cuerpo:'Texto',fuente:'arXiv',alt:'Una idea'};const post={laminas:Array.from({length:6},()=>({...slide})),descripcion:'Descripción',formato:'paper en simple',tipo_gancho:'hallazgo contraintuitivo',credito_imagen:'Autora',fuente_primaria:'https://arxiv.org/abs/2401.12345',checklist:{fuente_leida:true,cifras_verificadas:true,permiso_imagen:true,credito_imagen:true,sin_marcadores:true},estado:'borrador'};w.__test.setPost(post);return {w,db,calls,rows,uploads,setServer(x){serverPost={...serverPost,...x}}};
 }
 test('guardar y aprobar envía la revisión y las imágenes revisadas; al editar se bloquea publicación',async()=>{
@@ -132,4 +132,41 @@ test('pegar una imagen en el editor la usa como fondo',async()=>{
  assert.ok(ev.defaultPrevented);assert.match(d.getElementById('notice').textContent,/Imagen pegada/);
  const texto=new w.Event('paste',{bubbles:true,cancelable:true});texto.clipboardData={items:[{kind:'string',getAsFile:()=>null}]};
  d.body.dispatchEvent(texto);assert.ok(!texto.defaultPrevented);
+});
+
+test('si una tabla falla, el resto de la sala carga igual y se avisa cuál',async()=>{
+ const {w,db,rows}=setup(),d=w.document,from=db.from;rows.historias=[];
+ rows.candidatos=[{id:'c1',titulo:'Nota viva',url:'https://a.cl',estado:'nuevo',creado_en:'2026-11-18'}];
+ db.from=t=>t==='papers'?{select(){return this},order(){return this},then(ok){return Promise.resolve({data:null,error:{message:'timeout'}}).then(ok)}}:from(t);
+ await w.__test.load();assert.match(d.getElementById('candidatos').textContent,/Nota viva/);assert.match(d.getElementById('notice').textContent,/papers/);
+});
+test('un borrador sin guardar vuelve al entrar y se limpia al guardar',async()=>{
+ const {w}=setup(),d=w.document;d.getElementById('titulo').value='Texto a medias';d.getElementById('titulo').dispatchEvent(new w.Event('input'));
+ assert.match(w.localStorage.getItem('nucleo-sala-respaldo'),/Texto a medias/);
+ const respaldo=w.localStorage.getItem('nucleo-sala-respaldo');
+ await d.getElementById('guardar-post').onclick();assert.equal(w.localStorage.getItem('nucleo-sala-respaldo'),null);
+ d.getElementById('nuevo-post').onclick();w.localStorage.setItem('nucleo-sala-respaldo',respaldo);
+ await w.__test.recuperar();assert.equal(w.__test.getPost().laminas[0].titulo,'Texto a medias');assert.match(d.getElementById('notice').textContent,/Recuperé/);
+});
+test('mientras se redacta no parte otro borrador y sin fuente no se llama al servidor',async()=>{
+ const {w,db,calls,rows}=setup(),d=w.document;let soltar;const inv=db.functions.invoke;
+ rows.candidatos=[{id:'c1',titulo:'Uno',url:'https://a.cl/1',estado:'nuevo',creado_en:'2026-11-18'}];rows.historias=[];await w.__test.load();
+ w.__test.setPost({...w.__test.getPost(),laminas:[{titulo:'',cuerpo:'',fuente:'',alt:''}],fuente_primaria:''});
+ await d.getElementById('redactar').onclick();assert.equal(calls.filter(c=>c.name==='redactar').length,0);assert.match(d.getElementById('notice').textContent,/enlace de la fuente/);
+ db.functions.invoke=async(n,o)=>{if(n==='redactar')await new Promise(r=>{soltar=r});return inv(n,o)};
+ const b=()=>d.querySelector('button[data-c="c1"][data-accion="usar"]').click();b();await new Promise(r=>setTimeout(r,0));b();await new Promise(r=>setTimeout(r,0));
+ assert.match(d.getElementById('notice').textContent,/en proceso/);soltar();await new Promise(r=>setTimeout(r,5));assert.equal(calls.filter(c=>c.name==='redactar').length,1);
+});
+test('los errores del servidor se explican: sesión vencida, demora y causa propia',async()=>{
+ const {w,db}=setup(),d=w.document,caso=async(status,body)=>{db.functions.invoke=async()=>({error:{context:{status,clone:()=>({json:async()=>body})}}});await d.getElementById('guardar-post').onclick();return d.getElementById('notice').textContent};
+ assert.match(await caso(401,{}),/sesión terminó/);assert.match(await caso(403,{error:'Sin acceso'}),/sesión terminó/);assert.match(await caso(504,{}),/tardó demasiado/);assert.match(await caso(422,{error:'Otra persona guardó'}),/Otra persona guardó/);
+});
+test('recargar el radar no cierra las notas abiertas y el almacenamiento dañado no impide abrir',async()=>{
+ const {w,rows}=setup(),d=w.document;rows.historias=[];rows.candidatos=[{id:'c1',titulo:'Uno',url:'https://a.cl/1',estado:'nuevo',creado_en:'2026-11-18'}];
+ await w.__test.load();d.querySelector('[data-fila="c1"]').open=true;await w.__test.load();assert(d.querySelector('[data-fila="c1"]').open);
+ w.localStorage.setItem('nucleo-sala-respaldo','{roto');await w.__test.recuperar();
+});
+test('reescribir conserva el tipo de lámina y no se pasa de 10 láminas',async()=>{
+ const {w}=setup(),d=w.document;w.__test.getPost().laminas[0].tipo='dato';await d.getElementById('reescribir-lamina').onclick();assert.equal(w.__test.getPost().laminas[0].tipo,'dato');
+ for(let i=0;i<8;i++)d.getElementById('agregar').onclick();assert.equal(w.__test.getPost().laminas.length,10);assert.match(d.getElementById('notice').textContent,/10 láminas/);
 });

@@ -1,6 +1,7 @@
 import jpeg from 'npm:jpeg-js@0.4.4';
 import {cors,miembro,reply} from '../_shared/auth.ts';
 import {cargarFuente,contexto} from '../_shared/servicio.ts';
+import {mensajeVisible} from '../_shared/redaccion.ts';
 import {adminClient,leerBody,datosPost,comprobarDoi,cuentaInstagram} from '../_shared/posts.ts';
 import {validarPost,validarChecklist,leerJpegCompleto,sha256,huellaPost,huellaFuente} from '../_shared/publicacion.mjs';
 import {crearNota} from '../_shared/github.ts';
@@ -28,8 +29,8 @@ Deno.serve(async req=>{
   const result=await crearNota(post,fuente,images,()=>{refIntentada=true});
   const release=await db.rpc('soltar_publicacion',{p_id:id,p_publicado:true,p_url:result.url});if(release.error||release.data!==true)throw Error('La nota se publicó, pero falta reconciliar el estado');locked=false;
   return reply({estado:'publicado',url:result.url,commit:result.sha});
- }catch{
+ }catch(err){
   if(locked&&!refIntentada){try{await db.rpc('soltar_publicacion',{p_id:id,p_publicado:false})}catch{/* requiere revisión */}}
-  return reply({error:refIntentada?'El resultado de GitHub puede ser ambiguo. Revisa el repositorio y reconcilia el estado antes de reintentar.':'No se pudo publicar. Revisa la aprobación, las imágenes y la configuración.'},refIntentada?503:422);
+  return reply({error:refIntentada?'El resultado de GitHub puede ser ambiguo. Revisa el repositorio y reconcilia el estado antes de reintentar.':mensajeVisible(err,'Revisa la aprobación, las imágenes y la configuración.')},refIntentada?503:422);
  }
 });
